@@ -159,12 +159,21 @@ class EkstrakurikulerController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        $activeApproved = $myRegistrations->where('status', 'Disetujui')->first();
-        $activePending = $myRegistrations->where('status', 'Pending')->first();
-        $lastRejected = $myRegistrations->where('status', 'Ditolak')->first();
+        // Active registrations (Disetujui or Pending) count up to max 2
+        $activeRegistrations = $myRegistrations->whereIn('status', ['Pending', 'Disetujui']);
+        $activeCount = $activeRegistrations->count();
+        $canRegisterMore = $isKelas10 && ($activeCount < 2);
+
+        $myApprovedList = $myRegistrations->where('status', 'Disetujui');
+        $myPendingList = $myRegistrations->where('status', 'Pending');
+        $myRejectedList = $myRegistrations->where('status', 'Ditolak');
+
+        // Key by ekstrakurikuler_id for easy lookup on cards
+        $myRegByEkskul = $myRegistrations->keyBy('ekstrakurikuler_id');
 
         return view('siswa.ekskul', compact(
-            'siswa', 'isKelas10', 'ekskuls', 'myRegistrations', 'activeApproved', 'activePending', 'lastRejected'
+            'siswa', 'isKelas10', 'ekskuls', 'myRegistrations', 'activeRegistrations',
+            'activeCount', 'canRegisterMore', 'myApprovedList', 'myPendingList', 'myRejectedList', 'myRegByEkskul'
         ));
     }
 
@@ -189,14 +198,24 @@ class EkstrakurikulerController extends Controller
             'alasan_bergabung' => 'nullable|string|max:1000',
         ]);
 
-        // Check active registration
-        $activeReg = PendaftaranEkskul::where('siswa_id', $siswa->id)
+        // Check active registration count (max 2)
+        $activeCount = PendaftaranEkskul::where('siswa_id', $siswa->id)
+            ->whereIn('status', ['Pending', 'Disetujui'])
+            ->count();
+
+        if ($activeCount >= 2) {
+            return redirect()->back()->with('error', 'Batas maksimal pendaftaran tercapai! Anda hanya dapat mendaftar maksimal 2 ekstrakurikuler.');
+        }
+
+        // Check if already registered for this specific ekskul
+        $existingThisEkskul = PendaftaranEkskul::where('siswa_id', $siswa->id)
+            ->where('ekstrakurikuler_id', $request->ekstrakurikuler_id)
             ->whereIn('status', ['Pending', 'Disetujui'])
             ->first();
 
-        if ($activeReg) {
-            $statusText = $activeReg->status === 'Disetujui' ? 'disetujui' : 'sedang diproses (pending)';
-            return redirect()->back()->with('error', "Anda sudah memiliki pendaftaran ekskul yang {$statusText} ({$activeReg->ekstrakurikuler->nama_ekskul}).");
+        if ($existingThisEkskul) {
+            $statusText = $existingThisEkskul->status === 'Disetujui' ? 'disetujui' : 'sedang diproses (pending)';
+            return redirect()->back()->with('error', "Anda sudah mendaftar di ekstrakurikuler ini dan statusnya {$statusText}.");
         }
 
         $ekskul = Ekstrakurikuler::findOrFail($request->ekstrakurikuler_id);
