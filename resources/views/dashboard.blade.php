@@ -355,6 +355,67 @@
             </div>
         @endif
 
+        @if(Auth::user()->isGuru() && isset($mySubstituteDuties) && $mySubstituteDuties->count() > 0)
+            <!-- Substitute Teacher Duty Card (Mandat Guru Pengganti) -->
+            <div class="card border-0 shadow-lg mb-4 bg-gradient bg-primary bg-opacity-10 border-start border-5 border-primary rounded-3">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                        <h5 class="fw-bold text-dark mb-0">
+                            <i class="bi bi-person-badge-fill text-primary me-2 fs-4"></i>Tugas Guru Pengganti Hari Ini (Mandat Admin)
+                        </h5>
+                        <span class="badge bg-primary px-3 py-2 fs-6">
+                            {{ $mySubstituteDuties->count() }} Penugasan Menggantikan
+                        </span>
+                    </div>
+
+                    <div class="row g-3">
+                        @foreach($mySubstituteDuties as $duty)
+                            <div class="col-lg-6">
+                                <div class="bg-white p-3 rounded-3 border shadow-sm h-100">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span class="badge bg-danger text-white fw-bold px-2.5 py-1">
+                                            Menggantikan: {{ $duty->guru->nama ?? 'Guru' }} ({{ $duty->jenis }})
+                                        </span>
+                                        <span class="badge bg-secondary font-monospace">
+                                            {{ date('d/m/Y', strtotime($duty->tanggal_mulai)) }} - {{ date('d/m/Y', strtotime($duty->tanggal_selesai)) }}
+                                        </span>
+                                    </div>
+                                    <h5 class="fw-bold text-primary mb-1">
+                                        <i class="bi bi-building me-1"></i>Kelas Target: {{ $duty->tugas->kelas ?? 'Seluruh Kelas' }}
+                                    </h5>
+                                    <p class="small text-muted mb-2">
+                                        <strong>Mata Pelajaran:</strong> {{ $duty->guru->mata_pelajaran ?? '-' }} | 
+                                        <strong>Alasan Izin Guru:</strong> "{{ $duty->alasan }}"
+                                    </p>
+                                    @if($duty->tugas)
+                                        <div class="p-2 bg-light rounded border mb-2 small">
+                                            <strong class="text-dark d-block"><i class="bi bi-journal-check text-primary me-1"></i>Tugas Siswa Terhubung:</strong>
+                                            <span class="fw-bold text-dark">{{ $duty->tugas->judul }}</span>
+                                            <span class="text-secondary d-block mt-1">Deadline: {{ date('d/m/Y H:i', strtotime($duty->tugas->deadline)) }}</span>
+                                        </div>
+                                    @elseif($duty->tugas_siswa)
+                                        <div class="p-2 bg-light rounded border mb-2 small text-dark fst-italic">
+                                            <strong>Instruksi/Tugas Guru:</strong> "{{ $duty->tugas_siswa }}"
+                                        </div>
+                                    @endif
+                                    @if($duty->catatan_admin)
+                                        <div class="small text-warning text-dark fw-semibold">
+                                            <i class="bi bi-info-circle me-1"></i>Catatan Admin: {{ $duty->catatan_admin }}
+                                        </div>
+                                    @endif
+                                    <div class="mt-3 text-end">
+                                        <a href="{{ route('absensi.index', ['kelas' => $duty->tugas->kelas ?? '']) }}" class="btn btn-outline-primary btn-sm fw-bold">
+                                            <i class="bi bi-clipboard-check me-1"></i> Absenkan Siswa Kelas Ini
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+        @endif
+
         <!-- Main Statistics Cards -->
         @if(Auth::user()->isGuru())
             <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-3 mb-4">
@@ -560,6 +621,59 @@
             </div>
         @endif
 
+        @if(Auth::user()->isAdmin() || Auth::user()->isGuru())
+            <!-- Daily Attendance Overview Widget -->
+            <div class="card border-0 shadow-sm mb-4 rounded-3 overflow-hidden">
+                <div class="card-header bg-dark text-white py-3 border-0 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="bi bi-shield-check text-warning me-2"></i>Status Total Presensi Siswa Hari Ini ({{ \Carbon\Carbon::now()->translatedFormat('d F Y') }})
+                    </h5>
+                    <a href="{{ route('absensi.harian') }}" class="btn btn-warning text-dark btn-sm fw-bold px-3">
+                        <i class="bi bi-eye-fill me-1"></i> Monitoring Presensi Seluruh Siswa &rarr;
+                    </a>
+                </div>
+                <div class="card-body p-4 bg-light bg-opacity-50">
+                    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-5 g-3 text-center">
+                        <div class="col">
+                            <div class="bg-white p-3 rounded-3 shadow-sm border border-success border-2">
+                                <small class="text-success fw-bold text-uppercase d-block mb-1">Hadir</small>
+                                <h3 class="fw-bold text-success mb-0">{{ $todayHadirCount }}</h3>
+                                <small class="text-muted">Siswa</small>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="bg-white p-3 rounded-3 shadow-sm border border-warning border-2">
+                                <small class="text-warning fw-bold text-uppercase d-block mb-1">Izin</small>
+                                <h3 class="fw-bold text-dark mb-0">{{ $todayIzinCount }}</h3>
+                                <small class="text-muted">Dengan Alasan</small>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="bg-white p-3 rounded-3 shadow-sm border border-info border-2">
+                                <small class="text-info fw-bold text-uppercase d-block mb-1">Sakit</small>
+                                <h3 class="fw-bold text-dark mb-0">{{ $todaySakitCount }}</h3>
+                                <small class="text-muted">Keterangan Sakit</small>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="bg-white p-3 rounded-3 shadow-sm border border-danger border-2">
+                                <small class="text-danger fw-bold text-uppercase d-block mb-1">Alpa</small>
+                                <h3 class="fw-bold text-danger mb-0">{{ $todayAlpaCount }}</h3>
+                                <small class="text-muted">Tanpa Keterangan</small>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="bg-white p-3 rounded-3 shadow-sm border border-secondary border-2">
+                                <small class="text-secondary fw-bold text-uppercase d-block mb-1">Belum Diabsen</small>
+                                <h3 class="fw-bold text-secondary mb-0">{{ $todayBelumDiabsen }}</h3>
+                                <small class="text-muted">Belum Diisi Guru</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        @endif
+
         <!-- Recent Schedules & Tasks Overview -->
         <div class="row g-4 mb-4">
             <!-- Recent Schedules -->
@@ -648,6 +762,115 @@
                             </table>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PRESTASI SISWA SHOWCASE SECTION -->
+        <div class="card border-0 shadow-sm rounded-3 mb-4 overflow-hidden">
+            <div class="card-header bg-gradient bg-warning bg-opacity-10 py-3 border-0 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <div>
+                    <h4 class="fw-bold text-dark mb-0">
+                        <i class="bi bi-trophy-fill text-warning me-2 fs-3"></i>🏆 Hall of Fame & Siswa Berprestasi
+                    </h4>
+                    <small class="text-secondary">Pencapaian kebanggaan dan kejuaraan siswa di tingkat Kota, Provinsi, Nasional & Internasional</small>
+                </div>
+                @if(Auth::user()->isAdmin())
+                    <a href="{{ route('admin.prestasi.index') }}" class="btn btn-warning text-dark fw-bold btn-sm px-3 shadow-sm">
+                        <i class="bi bi-gear-fill me-1"></i> Kelola Prestasi (Admin)
+                    </a>
+                @endif
+            </div>
+            <div class="card-body p-4 bg-light bg-opacity-25">
+                <div class="row g-3">
+                    @forelse($prestasiList as $p)
+                        <div class="col-md-6 col-lg-4">
+                            <div class="card border-0 shadow-sm rounded-3 h-100 bg-white">
+                                <div class="card-body p-3">
+                                    <div class="d-flex align-items-center gap-3 mb-3">
+                                        @if($p->foto_bukti)
+                                            <img src="{{ asset('storage/'.$p->foto_bukti) }}" class="rounded-circle object-fit-cover border border-2 border-warning shadow-sm" style="width: 55px; height: 55px;">
+                                        @else
+                                            <div class="bg-warning text-dark rounded-circle d-flex align-items-center justify-content-center fw-bold fs-4 shadow-sm" style="width: 55px; height: 55px;">
+                                                🏆
+                                            </div>
+                                        @endif
+                                        <div>
+                                            <h6 class="fw-bold text-dark mb-0">{{ $p->nama_siswa }}</h6>
+                                            <small class="text-muted d-block">{{ $p->kelas ? 'Kelas '.$p->kelas : 'Siswa Sekolah' }}</small>
+                                            <span class="badge bg-warning text-dark fw-bold px-2 py-0.5 mt-1 small">
+                                                <i class="bi bi-award-fill me-1"></i>{{ $p->peringkat }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <h6 class="fw-bold text-primary mb-1">{{ $p->judul_prestasi }}</h6>
+                                    <div class="d-flex justify-content-between align-items-center mt-2 small text-muted">
+                                        <span><i class="bi bi-geo-alt me-1 text-danger"></i>Tingkat {{ $p->tingkat }}</span>
+                                        <span class="font-monospace">Thn {{ $p->tahun }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    @empty
+                        <div class="col-12">
+                            <div class="text-center py-4 text-muted bg-white rounded border border-dashed">
+                                <i class="bi bi-trophy fs-1 d-block mb-2 text-warning opacity-50"></i>
+                                Belum ada prestasi siswa yang ditampilkan di halaman beranda.
+                            </div>
+                        </div>
+                    @endforelse
+                </div>
+            </div>
+        </div>
+
+        <!-- EKSTRAKURIKULER SEKOLAH SHOWCASE SECTION -->
+        <div class="card border-0 shadow-sm rounded-3 mb-4 overflow-hidden">
+            <div class="card-header bg-gradient bg-primary bg-opacity-10 py-3 border-0 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <div>
+                    <h4 class="fw-bold text-dark mb-0">
+                        <i class="bi bi-palette-fill text-primary me-2 fs-3"></i>🎨 Ekstrakurikuler & Kegiatan Siswa
+                    </h4>
+                    <small class="text-secondary">Wadah minat, bakat, olahraga, seni, dan pengembangan karakter siswa</small>
+                </div>
+                @if(Auth::user()->isAdmin())
+                    <a href="{{ route('admin.ekskul.index') }}" class="btn btn-primary fw-bold btn-sm px-3 shadow-sm">
+                        <i class="bi bi-gear-fill me-1"></i> Kelola Ekskul (Admin)
+                    </a>
+                @endif
+            </div>
+            <div class="card-body p-4 bg-light bg-opacity-25">
+                <div class="row g-3">
+                    @forelse($ekskulList as $e)
+                        <div class="col-md-6 col-lg-4">
+                            <div class="card border-0 shadow-sm rounded-3 h-100 bg-white overflow-hidden">
+                                @if($e->foto)
+                                    <img src="{{ asset('storage/'.$e->foto) }}" class="card-img-top object-fit-cover" style="height: 120px;">
+                                @else
+                                    <div class="bg-primary text-white d-flex align-items-center justify-content-center p-3" style="height: 120px;">
+                                        <i class="bi bi-palette fs-1"></i>
+                                    </div>
+                                @endif
+                                <div class="card-body p-3">
+                                    <span class="badge bg-primary bg-opacity-10 text-primary border border-primary small mb-1">{{ $e->kategori }}</span>
+                                    <h5 class="fw-bold text-dark mb-1">{{ $e->nama_ekskul }}</h5>
+                                    <small class="text-muted d-block mb-2"><i class="bi bi-person-badge text-primary me-1"></i>Pembina: {{ $e->pembina ?? '-' }}</small>
+                                    <div class="small text-secondary mb-1">
+                                        <i class="bi bi-clock me-1 text-warning"></i>Jadwal: {{ $e->hari_latihan ?? '-' }} ({{ $e->jam_latihan ?? '-' }})
+                                    </div>
+                                    <div class="small text-secondary">
+                                        <i class="bi bi-geo-alt me-1 text-danger"></i>Lokasi: {{ $e->lokasi ?? '-' }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    @empty
+                        <div class="col-12">
+                            <div class="text-center py-4 text-muted bg-white rounded border border-dashed">
+                                <i class="bi bi-palette fs-1 d-block mb-2 text-primary opacity-50"></i>
+                                Belum ada daftar ekstrakurikuler terdaftar di sekolah.
+                            </div>
+                        </div>
+                    @endforelse
                 </div>
             </div>
         </div>

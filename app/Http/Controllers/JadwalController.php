@@ -20,17 +20,18 @@ class JadwalController extends Controller
         $jadwalsByKelas = collect();
         $jadwals = collect();
 
-        // If user is a Teacher, filter teaching schedule for their ID or subject
+        $mySubstituteDuties = collect();
+
+        // If user is a Teacher, filter teaching schedule strictly for their guru_id
         if ($user->isGuru() && $user->guru) {
             $guruId = $user->guru->id;
-            $mapelGuru = $user->guru->mata_pelajaran;
+            $query->where('guru_id', $guruId);
 
-            $query->where(function($q) use ($guruId, $mapelGuru) {
-                $q->where('guru_id', $guruId);
-                if ($mapelGuru) {
-                    $q->orWhere('mata_pelajaran', 'like', '%' . $mapelGuru . '%');
-                }
-            });
+            $mySubstituteDuties = \App\Models\IzinGuru::with(['guru', 'guruPengganti', 'tugas'])
+                ->where('guru_pengganti_id', $guruId)
+                ->where('status', 'Disetujui')
+                ->orderBy('tanggal_mulai', 'desc')
+                ->get();
 
             $jadwals = $query->orderByRaw("CASE 
                     WHEN hari = 'Senin' THEN 1
@@ -101,7 +102,7 @@ class JadwalController extends Controller
             str_starts_with($k->nama_kelas, 'XII ') || str_starts_with($k->nama_kelas, '12 ')
         );
 
-        return view('jadwal.index', compact('kelas', 'gurus', 'jadwals', 'jadwalsByKelas', 'kelasX', 'kelasXI', 'kelasXII', 'kelasOther'));
+        return view('jadwal.index', compact('kelas', 'gurus', 'jadwals', 'jadwalsByKelas', 'kelasX', 'kelasXI', 'kelasXII', 'kelasOther', 'mySubstituteDuties'));
     }
 
     public function store(Request $request)

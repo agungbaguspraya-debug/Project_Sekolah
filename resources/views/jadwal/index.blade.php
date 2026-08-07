@@ -26,6 +26,72 @@
         </p>
     </div>
 
+    <!-- SUBSTITUTE TEACHER DUTY CARD FOR GURU -->
+    @if(Auth::user()->isGuru() && isset($mySubstituteDuties) && $mySubstituteDuties->count() > 0)
+        <div class="card border-0 shadow-lg mb-4 bg-primary bg-opacity-10 border-start border-5 border-primary rounded-3">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                    <h5 class="fw-bold text-dark mb-0">
+                        <i class="bi bi-person-badge-fill text-primary me-2 fs-4"></i>Tugas Mengajar Pengganti Saya (Mandat Admin)
+                    </h5>
+                    <span class="badge bg-primary px-3 py-2 fs-6">
+                        {{ $mySubstituteDuties->count() }} Penugasan Menggantikan
+                    </span>
+                </div>
+                <div class="table-responsive bg-white rounded-3 border shadow-sm">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-4">Guru yang Digantikan</th>
+                                <th>Periode & Mapel</th>
+                                <th>Kelas & Info Tugas Siswa</th>
+                                <th class="pe-4 text-end">Aksi Presensi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($mySubstituteDuties as $duty)
+                                <tr>
+                                    <td class="ps-4">
+                                        <div class="fw-bold text-dark mb-0">{{ $duty->guru->nama ?? 'Guru' }}</div>
+                                        <span class="badge bg-danger text-white small">{{ $duty->jenis }}</span>
+                                    </td>
+                                    <td>
+                                        <div class="fw-bold text-primary small">{{ $duty->guru->mata_pelajaran ?? '-' }}</div>
+                                        <small class="text-muted font-monospace">
+                                            {{ date('d/m/Y', strtotime($duty->tanggal_mulai)) }} - {{ date('d/m/Y', strtotime($duty->tanggal_selesai)) }}
+                                        </small>
+                                    </td>
+                                    <td>
+                                        <div class="fw-bold text-dark mb-1">
+                                            <i class="bi bi-building me-1 text-primary"></i>Kelas Target: {{ $duty->tugas->kelas ?? 'Semua Kelas' }}
+                                        </div>
+                                        @if($duty->tugas)
+                                            <span class="badge bg-primary bg-opacity-10 text-primary border border-primary small d-inline-block">
+                                                <i class="bi bi-file-earmark-check-fill me-1"></i>Tugas: {{ $duty->tugas->judul }} (Deadline: {{ date('d/m/Y H:i', strtotime($duty->tugas->deadline)) }})
+                                            </span>
+                                        @elseif($duty->tugas_siswa)
+                                            <small class="text-muted d-block fst-italic">"{{ Str::limit($duty->tugas_siswa, 50) }}"</small>
+                                        @endif
+                                        @if($duty->catatan_admin)
+                                            <small class="text-warning text-dark d-block fw-semibold mt-1">
+                                                <i class="bi bi-info-circle me-1"></i>Note Admin: {{ $duty->catatan_admin }}
+                                            </small>
+                                        @endif
+                                    </td>
+                                    <td class="pe-4 text-end">
+                                        <a href="{{ route('absensi.index', ['kelas' => $duty->tugas->kelas ?? '']) }}" class="btn btn-outline-primary btn-sm fw-bold">
+                                            <i class="bi bi-clipboard-check me-1"></i> Absenkan Siswa
+                                        </a>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    @endif
+
     <!-- Alert Messages -->
     @if(session('success'))
         <div class="col-md-12 mb-4">
@@ -357,49 +423,69 @@
                         </div>
                     </div>
                     <div class="text-end bg-white bg-opacity-10 p-3 rounded-3 border border-white border-opacity-25 shadow-sm">
-                        <small class="text-white-50 d-block mb-1"><i class="bi bi-clock-history me-1"></i> Hari Mengajar</small>
-                        <h5 class="fw-bold text-white mb-0">Senin - Jumat</h5>
+                        <small class="text-white-50 d-block mb-1"><i class="bi bi-clock-history me-1"></i> Hari Mengajar Saya</small>
+                        <h5 class="fw-bold text-white mb-0">
+                            @if(count($jadwals) > 0)
+                                {{ implode(', ', $jadwals->keys()->toArray()) }}
+                            @else
+                                Belum Ada Jadwal
+                            @endif
+                        </h5>
                     </div>
                 </div>
             </div>
 
-            <!-- 5-Day Horizontal Schedule Cards for Teacher -->
-            <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-5 g-3">
-                @foreach(['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'] as $dayName)
-                    <div class="col">
-                        <div class="card border-0 shadow-sm h-100 rounded-3 overflow-hidden">
-                            <div class="card-header bg-dark text-white py-2 fw-bold text-center small border-0">
-                                <i class="bi bi-calendar-event me-1 text-warning"></i> {{ $dayName }}
-                            </div>
-                            <div class="card-body p-2 bg-light bg-opacity-50">
-                                @if(isset($jadwals[$dayName]) && count($jadwals[$dayName]) > 0)
+            @php
+                $allDays = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'];
+                $activeTeachingDays = array_filter($allDays, function($day) use ($jadwals) {
+                    return isset($jadwals[$day]) && count($jadwals[$day]) > 0;
+                });
+            @endphp
+
+            <!-- Display ONLY the Days Where Teacher Actually Teaches -->
+            @if(count($activeTeachingDays) > 0)
+                <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-{{ min(count($activeTeachingDays), 5) }} g-3">
+                    @foreach($activeTeachingDays as $dayName)
+                        <div class="col">
+                            <div class="card border-0 shadow-sm h-100 rounded-3 overflow-hidden">
+                                <div class="card-header bg-dark text-white py-2 fw-bold text-center small border-0 d-flex justify-content-between align-items-center px-3">
+                                    <span><i class="bi bi-calendar-event me-1 text-warning"></i> {{ $dayName }}</span>
+                                    <span class="badge bg-warning text-dark">{{ count($jadwals[$dayName]) }} Kelas</span>
+                                </div>
+                                <div class="card-body p-3 bg-light bg-opacity-50">
                                     <div class="d-flex flex-column gap-2">
                                         @foreach($jadwals[$dayName]->sortBy('jam_mulai') as $item)
                                             <div class="card border-0 shadow-sm bg-white p-3 rounded-3 border-start border-4 border-primary">
                                                 <div class="d-flex justify-content-between align-items-center mb-1">
-                                                    <span class="badge bg-primary bg-opacity-10 text-primary fw-bold" style="font-size: 0.75rem;">
-                                                        <i class="bi bi-building me-1"></i>{{ $item->kelas }}
+                                                    <span class="badge bg-primary bg-opacity-10 text-primary fw-bold" style="font-size: 0.78rem;">
+                                                        <i class="bi bi-building me-1"></i>Kelas: {{ $item->kelas }}
                                                     </span>
+                                                    @if($item->sesi)
+                                                        <span class="badge bg-secondary bg-opacity-10 text-secondary" style="font-size: 0.7rem;">Sesi {{ $item->sesi }}</span>
+                                                    @endif
                                                 </div>
-                                                <div class="fw-bold text-dark mb-1 small">{{ $item->mata_pelajaran }}</div>
-                                                <div class="small fw-semibold text-muted" style="font-size: 0.72rem;">
+                                                <div class="fw-bold text-dark mb-1 fs-6">{{ $item->mata_pelajaran }}</div>
+                                                <div class="small fw-semibold text-muted" style="font-size: 0.75rem;">
                                                     <i class="bi bi-clock me-1 text-primary"></i> 
                                                     {{ \App\Helpers\WaktuHelper::format('2026-08-05 '.$item->jam_mulai, false) }}
                                                 </div>
                                             </div>
                                         @endforeach
                                     </div>
-                                @else
-                                    <div class="text-center py-5 text-muted small">
-                                        <i class="bi bi-calendar2-minus d-block fs-3 mb-1 text-secondary opacity-50"></i>
-                                        Tidak ada jadwal mengajar
-                                    </div>
-                                @endif
+                                </div>
                             </div>
                         </div>
+                    @endforeach
+                </div>
+            @else
+                <div class="card border-0 shadow-sm rounded-3">
+                    <div class="card-body py-5 text-center text-muted">
+                        <i class="bi bi-calendar-x fs-1 mb-2 d-block text-secondary opacity-50"></i>
+                        <h5 class="fw-bold text-dark mb-1">Belum Ada Jadwal Mengajar</h5>
+                        <p class="mb-0 text-secondary small">Akun ini belum memiliki alokasi kelas / jam mengajar di sistem.</p>
                     </div>
-                @endforeach
-            </div>
+                </div>
+            @endif
         </div>
 
     @elseif(Auth::user()->isSiswa())

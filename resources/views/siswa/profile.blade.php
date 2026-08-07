@@ -16,18 +16,28 @@
         </div>
     @endif
 
-    <!-- Banner Kenaikan Kelas (Jika Siswa Dinyatakan Naik Kelas) -->
+    <!-- Banner Kenaikan Kelas & Ranking Nilai & Absensi (Jika Siswa Dinyatakan Naik Kelas) -->
     @if($siswa->status_kenaikan === 'Naik Kelas')
-        <div class="alert alert-success border-0 shadow-sm p-4 rounded-3 mb-4 d-flex align-items-center gap-3">
-            <div class="bg-success text-white p-3 rounded-circle fs-3 d-flex align-items-center justify-content-center" style="width: 55px; height: 55px;">
-                <i class="bi bi-award-fill"></i>
-            </div>
-            <div>
-                <span class="badge bg-success mb-1">PEMBERITAHUAN KENAIKAN KELAS</span>
-                <h4 class="fw-bold text-dark mb-1">🎉 Selamat! Anda Dinyatakan NAIK KELAS!</h4>
-                <p class="mb-0 text-secondary">
-                    {{ $siswa->pesan_kenaikan ?? 'Selamat atas pencapaian prestasi Anda selama satu tahun ajaran!' }} Sekarang Anda resmi menjadi siswa di <strong>Kelas {{ $siswa->kelas }}</strong>.
-                </p>
+        <div class="card border-0 shadow-lg mb-4 bg-gradient bg-success text-white rounded-3 overflow-hidden border-start border-5 border-warning">
+            <div class="card-body p-4 p-lg-5">
+                <div class="row align-items-center g-4">
+                    <div class="col-lg-7">
+                        <span class="badge bg-warning text-dark fw-bold px-3 py-2 mb-2 fs-6 rounded-pill">
+                            <i class="bi bi-award-fill me-1"></i> PEMBERITAHUAN KENAIKAN KELAS
+                        </span>
+                        <h2 class="fw-bold text-white mb-2">🎉 Selamat! Anda Dinyatakan NAIK KELAS!</h2>
+                        <p class="fs-6 text-white-50 mb-0">
+                            {{ $siswa->pesan_kenaikan ?? 'Selamat atas pencapaian prestasi Anda selama satu tahun ajaran!' }} Sekarang Anda resmi menjadi siswa di <strong>Kelas {{ $siswa->kelas }}</strong>.
+                        </p>
+                    </div>
+                    <div class="col-lg-5 text-center">
+                        <div class="bg-white bg-opacity-20 p-3.5 rounded-3 border border-white border-opacity-25 shadow-sm text-center">
+                            <small class="text-warning fw-bold text-uppercase d-block mb-1"><i class="bi bi-trophy-fill me-1"></i> Peringkat Kelas Saya</small>
+                            <h2 class="fw-bold text-white mb-0">Rangking #{{ $myRank }} <span class="fs-6 text-white-50">/ {{ $totalClassmates }} Siswa</span></h2>
+                            <small class="text-white-50 mt-1 d-block">Rata-rata Nilai: <strong>{{ $myScore }}</strong> | Kehadiran: <strong>{{ $persenHadir }}%</strong></small>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     @endif
@@ -108,6 +118,92 @@
                 </div>
             </div>
         </div>
+
+        <!-- ALUMNI TRACER (KULIAH / BEKERJA) SECTION FOR GRADUATED STUDENTS -->
+        <div class="card border-0 shadow-sm mb-4 rounded-3">
+            <div class="card-header bg-gradient bg-primary text-white py-3 border-0 d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold mb-0"><i class="bi bi-mortarboard-fill me-2 text-warning"></i>Status Pasca Lulus (Lanjut Kuliah / Karir Bekerja)</h5>
+                <span class="badge bg-warning text-dark font-monospace px-3 py-1 fs-6">Jejak Alumni</span>
+            </div>
+            <div class="card-body p-4">
+                <div class="row g-4">
+                    <!-- Form Input Tracer (Left) -->
+                    <div class="col-lg-5 border-end border-light">
+                        <h6 class="fw-bold text-dark mb-3"><i class="bi bi-pencil-square me-1 text-primary"></i>Isi / Perbarui Status Studi atau Karir Anda</h6>
+                        <form action="{{ route('siswa.alumni.store') }}" method="POST">
+                            @csrf
+                            <div class="mb-3">
+                                <label class="form-label fw-bold small">Pilih Status Utama <span class="text-danger">*</span></label>
+                                <select name="status_alumni" class="form-select fw-semibold" required>
+                                    <option value="Kuliah">🎓 Melanjutkan Kuliah / Perguruan Tinggi</option>
+                                    <option value="Bekerja">💼 Bekerja / Berkarir di Perusahaan</option>
+                                    <option value="Kuliah & Bekerja">🌟 Kuliah Sambil Bekerja</option>
+                                    <option value="Wirausaha">🏪 Membuka Usaha / Wirausaha</option>
+                                    <option value="Mencari Kerja">🔍 Dalam Proses Mencari Kerja</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="nama_instansi" class="form-label fw-bold small">Nama Universitas / Perusahaan / Usaha <span class="text-danger">*</span></label>
+                                <input type="text" name="nama_instansi" id="nama_instansi" class="form-control" placeholder="Contoh: Universitas Gadjah Mada / PT Telkom Indonesia" required>
+                            </div>
+                            <div class="row g-2 mb-3">
+                                <div class="col-6">
+                                    <label for="jurusan_atau_jabatan" class="form-label fw-bold small">Jurusan / Posisi Pekerjaan</label>
+                                    <input type="text" name="jurusan_atau_jabatan" id="jurusan_atau_jabatan" class="form-control" placeholder="Contoh: Teknik Informatika / Software Engineer">
+                                </div>
+                                <div class="col-6">
+                                    <label for="tahun_masuk" class="form-label fw-bold small">Tahun Masuk / Mulai</label>
+                                    <input type="text" name="tahun_masuk" id="tahun_masuk" class="form-control" value="{{ date('Y') }}">
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="lokasi" class="form-label fw-bold small">Lokasi (Kota / Provinsi)</label>
+                                <input type="text" name="lokasi" id="lokasi" class="form-control" placeholder="Contoh: Yogyakarta / Jakarta Selatan">
+                            </div>
+                            <div class="mb-3">
+                                <label for="catatan" class="form-label fw-bold small">Pesan / Catatan Tambahan (Opsional)</label>
+                                <textarea name="catatan" id="catatan" class="form-control" rows="2" placeholder="Bagikan tips atau cerita singkat ke adek kelas..."></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-warning text-dark fw-bold w-100 py-2">
+                                <i class="bi bi-send-fill me-1"></i> Simpan Data Alumni ke Admin
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- History List Tracer (Right) -->
+                    <div class="col-lg-7">
+                        <h6 class="fw-bold text-dark mb-3"><i class="bi bi-journal-check me-1 text-success"></i>Riwayat Status Studi & Karir Terdaftar</h6>
+                        @forelse($myAlumniTracers as $tracer)
+                            <div class="card border border-primary border-opacity-25 shadow-sm p-3 mb-3 rounded-3 bg-light bg-opacity-50">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="badge bg-primary px-3 py-1 fs-6">
+                                        <i class="bi bi-check-circle-fill me-1"></i>{{ $tracer->status_alumni }}
+                                    </span>
+                                    <small class="text-muted font-monospace">Tahun: {{ $tracer->tahun_masuk ?? '-' }}</small>
+                                </div>
+                                <h5 class="fw-bold text-primary mb-1">{{ $tracer->nama_instansi }}</h5>
+                                @if($tracer->jurusan_atau_jabatan)
+                                    <p class="mb-1 text-dark small"><strong>Jurusan / Posisi:</strong> {{ $tracer->jurusan_atau_jabatan }}</p>
+                                @endif
+                                @if($tracer->lokasi)
+                                    <p class="mb-1 text-muted small"><i class="bi bi-geo-alt me-1 text-danger"></i>Lokasi: {{ $tracer->lokasi }}</p>
+                                @endif
+                                @if($tracer->catatan)
+                                    <div class="small text-secondary fst-italic mt-2 p-2 bg-white rounded border">
+                                        "{{ $tracer->catatan }}"
+                                    </div>
+                                @endif
+                            </div>
+                        @empty
+                            <div class="p-4 text-center text-muted bg-light rounded border border-dashed">
+                                <i class="bi bi-mortarboard fs-1 d-block mb-2 text-secondary"></i>
+                                Belum ada data status pasca lulus yang Anda isi. Silakan isi form di samping untuk masuk ke database alumni sekolah.
+                            </div>
+                        @endforelse
+                    </div>
+                </div>
+            </div>
+        </div>
     @endif
 
     <!-- SECTION 1: Profil Saya & Catatan Pelanggaran -->
@@ -149,6 +245,28 @@
                                 <small class="text-muted d-block fw-bold mb-1">Jurusan / Keahlian</small>
                                 <span class="fw-bold text-dark fs-5"><i class="bi bi-journal-text text-primary me-2"></i>{{ $siswa->jurusan }}</span>
                             </div>
+                        </div>
+
+                        <!-- Ekstrakurikuler Saya Section -->
+                        <div class="text-start border-top pt-3 mt-3">
+                            <small class="text-muted d-block fw-bold mb-2"><i class="bi bi-palette-fill text-primary me-1"></i>Ekstrakurikuler Saya</small>
+                            @forelse($myApprovedEkskuls as $item)
+                                <div class="bg-light p-2.5 rounded-3 mb-2 border border-primary border-opacity-25">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <span class="fw-bold text-primary small">{{ $item->ekstrakurikuler->nama_ekskul }}</span>
+                                        <span class="badge bg-success small">Aktif</span>
+                                    </div>
+                                    <small class="text-muted d-block"><i class="bi bi-person-badge me-1 text-secondary"></i>Pembina: {{ $item->ekstrakurikuler->pembina ?? '-' }}</small>
+                                    <small class="text-dark d-block fw-semibold mt-1"><i class="bi bi-clock me-1 text-warning"></i>{{ $item->ekstrakurikuler->hari_latihan ?? '-' }} ({{ $item->ekstrakurikuler->jam_latihan ?? '-' }})</small>
+                                </div>
+                            @empty
+                                <div class="small text-muted fst-italic p-2 bg-light rounded text-center">
+                                    Belum terdaftar di ekstrakurikuler manapun.
+                                </div>
+                            @endforelse
+                            <a href="{{ route('siswa.ekskul') }}" class="btn btn-outline-primary btn-sm w-100 mt-2 fw-bold">
+                                <i class="bi bi-plus-circle me-1"></i> Lihat & Daftar Ekskul
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -210,6 +328,114 @@
                                     @endforelse
                                 </tbody>
                             </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CARDS FOR RANKING & ATTENDANCE SUMMARY -->
+        <div class="row g-4 mb-4">
+            <!-- Card 1: Class Rank & Academic Score -->
+            <div class="col-lg-6">
+                <div class="card border-0 shadow-sm h-100 rounded-3">
+                    <div class="card-header bg-white py-3 border-0 d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0 fw-bold text-dark">
+                            <i class="bi bi-trophy-fill text-warning me-2"></i>Peringkat Nilai Akademik Kelas
+                        </h5>
+                        <span class="badge bg-warning text-dark font-bold px-3 py-1">Peringkat Kelas</span>
+                    </div>
+                    <div class="card-body p-4 bg-light bg-opacity-50">
+                        <div class="d-flex align-items-center gap-3 mb-3 bg-white p-3 rounded-3 shadow-sm border">
+                            <div class="bg-warning bg-opacity-10 text-warning p-3 rounded-circle fs-2 d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                                🏆
+                            </div>
+                            <div>
+                                <small class="text-muted fw-bold d-block">Peringkat Nilai di Kelas {{ $siswa->kelas }}</small>
+                                <h3 class="fw-bold text-dark mb-0">
+                                    Rangking #{{ $myRank }} <span class="fs-6 text-muted">dari {{ $totalClassmates }} Siswa</span>
+                                </h3>
+                            </div>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-6">
+                                <div class="bg-white p-3 rounded-3 shadow-sm border text-center">
+                                    <small class="text-muted d-block mb-1">Rata-rata Nilai</small>
+                                    <h4 class="fw-bold text-primary mb-0">{{ $myScore }}</h4>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="bg-white p-3 rounded-3 shadow-sm border text-center">
+                                    <small class="text-muted d-block mb-1">Persentase Kehadiran</small>
+                                    <h4 class="fw-bold text-success mb-0">{{ $persenHadir }}%</h4>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 2: Attendance Recap & Reason Log -->
+            <div class="col-lg-6">
+                <div class="card border-0 shadow-sm h-100 rounded-3">
+                    <div class="card-header bg-white py-3 border-0 d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0 fw-bold text-dark">
+                            <i class="bi bi-clipboard-check-fill text-primary me-2"></i>Rekap Presensi & Absensi Saya
+                        </h5>
+                        <span class="badge bg-primary px-3 py-1">{{ $totalRecordedAbsensi }} Hari Terdaftar</span>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="row row-cols-4 g-2 text-center mb-3">
+                            <div class="col">
+                                <div class="p-2 bg-success bg-opacity-10 text-success rounded-3 border border-success border-opacity-25">
+                                    <small class="d-block fw-bold" style="font-size: 0.75rem;">Hadir</small>
+                                    <h4 class="fw-bold mb-0">{{ $totalHadir }}</h4>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="p-2 bg-warning bg-opacity-10 text-warning rounded-3 border border-warning border-opacity-25">
+                                    <small class="d-block fw-bold text-dark" style="font-size: 0.75rem;">Izin</small>
+                                    <h4 class="fw-bold text-dark mb-0">{{ $totalIzin }}</h4>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="p-2 bg-info bg-opacity-10 text-info rounded-3 border border-info border-opacity-25">
+                                    <small class="d-block fw-bold text-dark" style="font-size: 0.75rem;">Sakit</small>
+                                    <h4 class="fw-bold text-dark mb-0">{{ $totalSakit }}</h4>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="p-2 bg-danger bg-opacity-10 text-danger rounded-3 border border-danger border-opacity-25">
+                                    <small class="d-block fw-bold" style="font-size: 0.75rem;">Alpa</small>
+                                    <h4 class="fw-bold mb-0">{{ $totalAlpa }}</h4>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="border-top pt-3">
+                            <small class="fw-bold text-dark d-block mb-2"><i class="bi bi-info-circle me-1 text-primary"></i> Catatan Rincian Izin / Sakit / Alpa:</small>
+                            @if(count($absensiLog) > 0)
+                                <div class="d-flex flex-column gap-2 overflow-y-auto" style="max-height: 140px;">
+                                    @foreach($absensiLog as $log)
+                                        <div class="p-2 bg-light rounded border d-flex justify-content-between align-items-center small">
+                                            <div>
+                                                <span class="badge {{ $log->status === 'Alpa' ? 'bg-danger' : ($log->status === 'Sakit' ? 'bg-info text-dark' : 'bg-warning text-dark') }} me-1">
+                                                    {{ $log->status }}
+                                                </span>
+                                                <span class="fw-semibold text-dark">{{ date('d M Y', strtotime($log->tanggal)) }}</span>
+                                            </div>
+                                            <span class="text-secondary fst-italic text-truncate ms-2" style="max-width: 200px;">
+                                                "{{ $log->alasan ?? 'Tanpa Keterangan' }}"
+                                            </span>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @else
+                                <div class="text-success small fw-semibold p-2 bg-success bg-opacity-10 rounded border border-success border-opacity-25 text-center">
+                                    <i class="bi bi-check-circle-fill me-1"></i> Luar biasa! Tidak ada catatan izin, sakit, atau alpa.
+                                </div>
+                            @endif
                         </div>
                     </div>
                 </div>

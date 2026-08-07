@@ -374,6 +374,34 @@ class SiswaController extends Controller
         $pelanggarans = $siswa->pelanggaran()->orderBy('tanggal', 'desc')->get();
         $totalPoints = $pelanggarans->sum('point');
 
+        // 1. Calculate Attendance Statistics for Student
+        $myAbsensi = \App\Models\Absensi::where('siswa_id', $siswa->id)->orderBy('tanggal', 'desc')->get();
+        $totalHadir = $myAbsensi->where('status', 'Hadir')->count();
+        $totalIzin = $myAbsensi->where('status', 'Izin')->count();
+        $totalSakit = $myAbsensi->where('status', 'Sakit')->count();
+        $totalAlpa = $myAbsensi->where('status', 'Alpa')->count();
+        $totalRecordedAbsensi = $myAbsensi->count();
+        $persenHadir = $totalRecordedAbsensi > 0 ? round(($totalHadir / $totalRecordedAbsensi) * 100) : 100;
+        $absensiLog = $myAbsensi->whereIn('status', ['Izin', 'Sakit', 'Alpa']);
+
+        // 2. Calculate Class Ranking for Student
+        $classmates = Siswa::where('kelas', $siswa->kelas)->where('status', '!=', 'Lulus')->get();
+        $rankedClassmates = $classmates->map(function($c) {
+            $subAvg = \App\Models\TugasSubmission::where('siswa_id', $c->id)->whereNotNull('nilai')->avg('nilai');
+            $baseScore = $c->total_nilai ?? 85.00;
+            $score = $subAvg ? ($baseScore * 0.3) + ($subAvg * 0.7) : $baseScore;
+            return [
+                'id' => $c->id,
+                'nama' => $c->nama,
+                'score' => round($score, 2),
+            ];
+        })->sortByDesc('score')->values();
+
+        $myRankIndex = $rankedClassmates->search(fn($item) => $item['id'] === $siswa->id);
+        $myRank = $myRankIndex !== false ? ($myRankIndex + 1) : 1;
+        $totalClassmates = $rankedClassmates->count();
+        $myScore = $rankedClassmates->firstWhere('id', $siswa->id)['score'] ?? ($siswa->total_nilai ?? 85.00);
+
         // Fetch Schedule for student's class with teacher info
         $jadwals = \App\Models\JadwalPelajaran::with('guru')
             ->where('kelas', $siswa->kelas)
@@ -398,7 +426,22 @@ class SiswaController extends Controller
             ->get()
             ->keyBy('tugas_id');
 
-        return view('siswa.profile', compact('siswa', 'profilSekolah', 'pelanggarans', 'totalPoints', 'jadwals', 'tugas', 'submissions'));
+        // Fetch Alumni Tracer records if student is graduated
+        $myAlumniTracers = \App\Models\AlumniTracer::where('siswa_id', $siswa->id)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        // Fetch Approved Extracurriculars for this student
+        $myApprovedEkskuls = \App\Models\PendaftaranEkskul::with('ekstrakurikuler')
+            ->where('siswa_id', $siswa->id)
+            ->where('status', 'Disetujui')
+            ->get();
+
+        return view('siswa.profile', compact(
+            'siswa', 'profilSekolah', 'pelanggarans', 'totalPoints', 'jadwals', 'tugas', 'submissions',
+            'myAbsensi', 'totalHadir', 'totalIzin', 'totalSakit', 'totalAlpa', 'totalRecordedAbsensi',
+            'persenHadir', 'absensiLog', 'myRank', 'totalClassmates', 'myScore', 'myAlumniTracers', 'myApprovedEkskuls'
+        ));
     }
 
     public function jadwal()
@@ -427,7 +470,15 @@ class SiswaController extends Controller
             ->get()
             ->groupBy('hari');
 
-        return view('siswa.jadwal', compact('siswa', 'jadwals'));
+        $today = date('Y-m-d');
+        $activeIzinGurus = \App\Models\IzinGuru::with('guruPengganti')
+            ->where('status', 'Disetujui')
+            ->where('tanggal_mulai', '<=', $today)
+            ->where('tanggal_selesai', '>=', $today)
+            ->get()
+            ->keyBy('guru_id');
+
+        return view('siswa.jadwal', compact('siswa', 'jadwals', 'activeIzinGurus'));
     }
 
     public function tugas()
