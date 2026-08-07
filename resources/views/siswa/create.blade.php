@@ -81,7 +81,12 @@
                 </div>
 
                 <div class="mb-3">
-                    <label for="jurusan" class="form-label fw-bold">Jurusan</label>
+                    <label for="jurusan" class="form-label fw-bold d-flex justify-content-between align-items-center">
+                        <span>Jurusan</span>
+                        <span id="jurusanSyncBadge" class="badge bg-success bg-opacity-10 text-success border border-success small" style="display: none;">
+                            ✨ Otomatis Terpilih
+                        </span>
+                    </label>
                     <select name="jurusan" id="jurusan" class="form-select" required>
                         <option value="">-- Pilih Jurusan --</option>
                         @forelse($jurusans as $j)

@@ -606,6 +606,83 @@
                 });
             });
         });
+
+        // Global Automatic Jurusan Sync JavaScript
+        document.addEventListener('DOMContentLoaded', function() {
+            function autoSyncJurusan(kelasSelect) {
+                if (!kelasSelect) return;
+                const form = kelasSelect.closest('form') || document;
+                const jurusanSelect = form.querySelector('select[name="jurusan"]') || form.querySelector('#jurusan');
+                if (!jurusanSelect) return;
+
+                const rawKelas = kelasSelect.value ? kelasSelect.value.trim().toUpperCase() : '';
+                if (!rawKelas) return;
+
+                const tokens = rawKelas.split(/\s+/);
+                let matchedOption = null;
+
+                const majorMap = {
+                    'DKV': ['DKV', 'DESAIN KOMUNIKASI VISUAL'],
+                    'RPL': ['RPL', 'REKAYASA PERANGKAT LUNAK'],
+                    'TKJ': ['TKJ', 'TEKNIK KOMPUTER'],
+                    'MM': ['MM', 'MULTIMEDIA'],
+                    'AKL': ['AKL', 'AKUNTANSI'],
+                    'AK': ['AK', 'AKUNTANSI'],
+                    'TKR': ['TKR', 'TEKNIK KENDARAAN RINGAN'],
+                    'TSM': ['TSM', 'TEKNIK SEPEDA MOTOR'],
+                    'OTKP': ['OTKP', 'OTOMATISASI', 'PERKANTORAN'],
+                    'BDP': ['BDP', 'BISNIS DARING', 'PEMASARAN'],
+                    'TB': ['TB', 'TATA BOGA'],
+                    'TITL': ['TITL', 'TEKNIK INSTALASI'],
+                    'TP': ['TP', 'TEKNIK PEMESINAN']
+                };
+
+                const options = Array.from(jurusanSelect.options);
+
+                for (let opt of options) {
+                    if (!opt.value) continue;
+                    const optVal = opt.value.toUpperCase();
+                    const optText = opt.text.toUpperCase();
+
+                    for (let token of tokens) {
+                        if (token.length >= 2) {
+                            if (optVal.includes(token) || optText.includes(token) || token.includes(optVal)) {
+                                matchedOption = opt;
+                                break;
+                            }
+                            if (majorMap[token]) {
+                                for (let alias of majorMap[token]) {
+                                    if (optVal.includes(alias) || optText.includes(alias)) {
+                                        matchedOption = opt;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                        if (matchedOption) break;
+                    }
+                    if (matchedOption) break;
+                }
+
+                if (matchedOption) {
+                    jurusanSelect.value = matchedOption.value;
+                    jurusanSelect.classList.add('is-valid');
+                    setTimeout(() => jurusanSelect.classList.remove('is-valid'), 2000);
+
+                    const syncBadge = form.querySelector('#jurusanSyncBadge');
+                    if (syncBadge) {
+                        syncBadge.style.display = 'inline-block';
+                        syncBadge.textContent = '✨ Otomatis Terpilih: ' + matchedOption.value;
+                    }
+                }
+            }
+
+            document.addEventListener('change', function(e) {
+                if (e.target && (e.target.name === 'kelas' || e.target.id === 'kelas' || e.target.id === 'kelas_select')) {
+                    autoSyncJurusan(e.target);
+                }
+            });
+        });
     </script>
 </body>
 </html>
