@@ -50,8 +50,13 @@
 
                     <div class="mb-3">
                         <label for="password" class="form-label fw-bold">Password Baru (Biarkan kosong jika tidak diubah)</label>
-                        <input type="password" name="password" id="password" class="form-control @error('password') is-invalid @enderror" placeholder="Isi hanya jika ingin mengubah password">
-                        @error('password') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                        <div class="input-group">
+                            <input type="password" name="password" id="password" class="form-control @error('password') is-invalid @enderror" placeholder="Isi hanya jika ingin mengubah password">
+                            <button class="btn btn-outline-secondary toggle-password" type="button" data-target="password" title="Tampilkan / Sembunyikan Password">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        </div>
+                        @error('password') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
                     </div>
 
                     <div class="mb-3">

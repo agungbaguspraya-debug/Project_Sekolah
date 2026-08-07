@@ -683,6 +683,31 @@
                 }
             });
         });
+
+        // Global Toggle Password Show / Hide JavaScript
+        document.addEventListener('click', function(e) {
+            const btn = e.target.closest('.toggle-password');
+            if (btn) {
+                const targetId = btn.getAttribute('data-target');
+                let input = targetId ? document.getElementById(targetId) : null;
+                if (!input) {
+                    const container = btn.closest('.input-group') || btn.closest('.position-relative') || btn.parentElement;
+                    input = container ? container.querySelector('input') : null;
+                }
+                if (input) {
+                    const isPassword = input.type === 'password';
+                    input.type = isPassword ? 'text' : 'password';
+                    const icon = btn.querySelector('i');
+                    if (icon) {
+                        if (isPassword) {
+                            icon.className = 'bi bi-eye-slash-fill text-primary';
+                        } else {
+                            icon.className = 'bi bi-eye';
+                        }
+                    }
+                }
+            }
+        });
     </script>
 </body>
 </html>

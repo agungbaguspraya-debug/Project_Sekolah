@@ -148,11 +148,21 @@
                             <div class="row g-3 mb-3">
                                 <div class="col-md-6">
                                     <label for="password" class="form-label fw-bold">Password Baru</label>
-                                    <input type="password" name="password" id="password" class="form-control" placeholder="Minimal 8 karakter">
+                                    <div class="input-group">
+                                        <input type="password" name="password" id="password" class="form-control" placeholder="Minimal 8 karakter">
+                                        <button class="btn btn-outline-secondary toggle-password" type="button" data-target="password" title="Tampilkan / Sembunyikan Password">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                    </div>
                                 </div>
                                 <div class="col-md-6">
                                     <label for="password_confirmation" class="form-label fw-bold">Konfirmasi Password Baru</label>
-                                    <input type="password" name="password_confirmation" id="password_confirmation" class="form-control" placeholder="Ulangi password baru">
+                                    <div class="input-group">
+                                        <input type="password" name="password_confirmation" id="password_confirmation" class="form-control" placeholder="Ulangi password baru">
+                                        <button class="btn btn-outline-secondary toggle-password" type="button" data-target="password_confirmation" title="Tampilkan / Sembunyikan Password">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>

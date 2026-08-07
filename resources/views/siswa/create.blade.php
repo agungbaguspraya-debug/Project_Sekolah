@@ -114,7 +114,12 @@
 
                 <div class="mb-4">
                     <label for="password" class="form-label fw-bold">Password Akun</label>
-                    <input type="password" name="password" id="password" class="form-control" placeholder="Minimal 6 karakter">
+                    <div class="input-group">
+                        <input type="password" name="password" id="password" class="form-control" placeholder="Minimal 6 karakter">
+                        <button class="btn btn-outline-secondary toggle-password" type="button" data-target="password" title="Tampilkan / Sembunyikan Password">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                    </div>
                 </div>
 
                 <div class="d-grid gap-2">
