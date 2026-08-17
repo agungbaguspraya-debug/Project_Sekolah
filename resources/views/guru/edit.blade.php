@@ -5,7 +5,7 @@
     <div class="col-md-8">
         <div class="d-flex align-items-center mb-4">
             <a href="{{ route('guru.index') }}" class="btn btn-outline-secondary btn-sm me-3"><i class="bi bi-arrow-left"></i> Kembali</a>
-            <h3 class="fw-bold mb-0 text-dark">Edit Data Guru</h3>
+            <h3 class="fw-bold mb-0 text-dark">Edit Data Guru & Staff</h3>
         </div>
 
         <div class="card border-0 shadow-sm">
@@ -22,13 +22,29 @@
 
                     <div class="row g-3 mb-3">
                         <div class="col-md-6">
+                            <label for="kategori" class="form-label fw-bold">Kategori Pegawai</label>
+                            <select name="kategori" id="kategori" class="form-select @error('kategori') is-invalid @enderror" required onchange="toggleMataPelajaranEdit()">
+                                <option value="guru" {{ old('kategori', $guru->kategori) == 'guru' ? 'selected' : '' }}>Guru Pengajar</option>
+                                <option value="staff" {{ old('kategori', $guru->kategori) == 'staff' ? 'selected' : '' }}>Staff / Pegawai</option>
+                            </select>
+                            @error('kategori') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                        </div>
+                        <div class="col-md-6">
+                            <label for="posisi" class="form-label fw-bold">Posisi / Jabatan (Opsional)</label>
+                            <input type="text" name="posisi" id="posisi" class="form-control @error('posisi') is-invalid @enderror" placeholder="Contoh: Staff TU, Satpam, dll" value="{{ old('posisi', $guru->posisi) }}">
+                            @error('posisi') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
                             <label for="nip" class="form-label fw-bold">NIP</label>
                             <input type="text" name="nip" id="nip" class="form-control @error('nip') is-invalid @enderror" value="{{ old('nip', $guru->nip) }}">
                             @error('nip') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-6" id="mata_pelajaran_container_edit">
                             <label for="mata_pelajaran" class="form-label fw-bold">Mata Pelajaran</label>
-                            <input type="text" name="mata_pelajaran" id="mata_pelajaran" class="form-control @error('mata_pelajaran') is-invalid @enderror" value="{{ old('mata_pelajaran', $guru->mata_pelajaran) }}" required>
+                            <input type="text" name="mata_pelajaran" id="mata_pelajaran" class="form-control @error('mata_pelajaran') is-invalid @enderror" value="{{ old('mata_pelajaran', $guru->mata_pelajaran) }}">
                             @error('mata_pelajaran') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
                     </div>
@@ -40,7 +56,7 @@
                     </div>
 
                     <hr class="my-4">
-                    <h6 class="fw-bold text-primary mb-3"><i class="bi bi-key-fill me-1"></i>Akun Login Guru</h6>
+                    <h6 class="fw-bold text-primary mb-3"><i class="bi bi-key-fill me-1"></i>Akun Login Pegawai</h6>
 
                     <div class="mb-3">
                         <label for="email" class="form-label fw-bold">Email Login</label>
@@ -67,11 +83,25 @@
 
                     <div class="d-flex justify-content-end gap-2 mt-4">
                         <a href="{{ route('guru.index') }}" class="btn btn-light px-4">Batal</a>
-                        <button type="submit" class="btn btn-primary px-4"><i class="bi bi-check-circle me-1"></i> Update Data Guru</button>
+                        <button type="submit" class="btn btn-primary px-4"><i class="bi bi-check-circle me-1"></i> Update Data</button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
 </div>
+<script>
+    function toggleMataPelajaranEdit() {
+        var kategori = document.getElementById('kategori').value;
+        var mapelContainer = document.getElementById('mata_pelajaran_container_edit');
+        if(kategori === 'staff') {
+            mapelContainer.style.display = 'none';
+        } else {
+            mapelContainer.style.display = 'block';
+        }
+    }
+    document.addEventListener('DOMContentLoaded', function() {
+        toggleMataPelajaranEdit();
+    });
+</script>
 @endsection

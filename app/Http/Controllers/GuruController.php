@@ -37,21 +37,23 @@ class GuruController extends Controller
     public function store(Request $request)
     {
         $request->validate([
+            'kategori' => 'required|in:guru,staff',
+            'posisi' => 'nullable|string|max:255',
             'nip' => 'nullable|string|unique:gurus,nip',
             'nama' => 'required|string|max:255',
-            'mata_pelajaran' => 'required|string|max:255',
+            'mata_pelajaran' => 'required_if:kategori,guru|nullable|string|max:255',
             'no_hp' => 'nullable|string|max:20',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|string|min:6',
             'foto' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
         ], [
-            'nip.unique' => 'NIP sudah terdaftar pada data guru lain.',
-            'email.unique' => 'Email login sudah digunakan oleh akun lain.',
+            'nip.unique' => 'NIP sudah terdaftar.',
+            'email.unique' => 'Email login sudah digunakan.',
             'email.required' => 'Email login wajib diisi.',
             'password.required' => 'Password login wajib diisi.',
             'password.min' => 'Password minimal 6 karakter.',
-            'nama.required' => 'Nama guru wajib diisi.',
-            'mata_pelajaran.required' => 'Mata pelajaran wajib diisi.',
+            'nama.required' => 'Nama wajib diisi.',
+            'mata_pelajaran.required_if' => 'Mata pelajaran wajib diisi untuk Guru.',
         ]);
 
         $fotoPath = null;
@@ -63,19 +65,21 @@ class GuruController extends Controller
         $noHp = $request->filled('no_hp') ? trim($request->no_hp) : null;
 
         DB::transaction(function () use ($request, $fotoPath, $nip, $noHp) {
-            // Create User account for Teacher
+            // Create User account
             $user = User::create([
                 'name' => $request->nama,
                 'email' => $request->email,
                 'password' => Hash::make($request->password),
-                'role' => 'guru',
+                'role' => 'guru', // Kept as guru to keep auth logic working, or we can use the requested kategori if supported
             ]);
 
-            // Create Guru record
+            // Create Guru/Staff record
             $guru = Guru::create([
+                'kategori' => $request->kategori,
+                'posisi' => $request->posisi,
                 'nip' => $nip,
                 'nama' => $request->nama,
-                'mata_pelajaran' => $request->mata_pelajaran,
+                'mata_pelajaran' => $request->kategori === 'guru' ? $request->mata_pelajaran : null,
                 'no_hp' => $noHp,
                 'foto' => $fotoPath,
                 'user_id' => $user->id,
@@ -96,28 +100,32 @@ class GuruController extends Controller
     public function update(Request $request, Guru $guru)
     {
         $request->validate([
+            'kategori' => 'required|in:guru,staff',
+            'posisi' => 'nullable|string|max:255',
             'nip' => 'nullable|string|unique:gurus,nip,' . $guru->id,
             'nama' => 'required|string|max:255',
-            'mata_pelajaran' => 'required|string|max:255',
+            'mata_pelajaran' => 'required_if:kategori,guru|nullable|string|max:255',
             'no_hp' => 'nullable|string|max:20',
             'email' => 'required|email|unique:users,email,' . ($guru->user ? $guru->user->id : 'NULL'),
             'password' => 'nullable|string|min:6',
             'foto' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
         ], [
-            'nip.unique' => 'NIP sudah terdaftar pada data guru lain.',
-            'email.unique' => 'Email login sudah digunakan oleh akun lain.',
+            'nip.unique' => 'NIP sudah terdaftar.',
+            'email.unique' => 'Email login sudah digunakan.',
             'email.required' => 'Email login wajib diisi.',
-            'nama.required' => 'Nama guru wajib diisi.',
-            'mata_pelajaran.required' => 'Mata pelajaran wajib diisi.',
+            'nama.required' => 'Nama wajib diisi.',
+            'mata_pelajaran.required_if' => 'Mata pelajaran wajib diisi untuk Guru.',
         ]);
 
         $nip = $request->filled('nip') ? trim($request->nip) : null;
         $noHp = $request->filled('no_hp') ? trim($request->no_hp) : null;
 
         $data = [
+            'kategori' => $request->kategori,
+            'posisi' => $request->posisi,
             'nip' => $nip,
             'nama' => $request->nama,
-            'mata_pelajaran' => $request->mata_pelajaran,
+            'mata_pelajaran' => $request->kategori === 'guru' ? $request->mata_pelajaran : null,
             'no_hp' => $noHp,
         ];
 

@@ -4,11 +4,11 @@
 <div class="container-fluid px-0">
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
         <div>
-            <h2 class="fw-bold text-dark mb-1"><i class="bi bi-person-workspace text-primary me-2"></i>Kelola Data Guru</h2>
-            <p class="text-muted mb-0">Manajemen data pengajar, mata pelajaran, serta akun login guru.</p>
+            <h2 class="fw-bold text-dark mb-1"><i class="bi bi-person-workspace text-primary me-2"></i>Kelola Data Guru & Staff</h2>
+            <p class="text-muted mb-0">Manajemen data pengajar, pegawai, serta akun login mereka.</p>
         </div>
         <button type="button" class="btn btn-primary fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#tambahGuruModal">
-            <i class="bi bi-person-plus-fill me-1"></i> Tambah Data Guru Baru
+            <i class="bi bi-person-plus-fill me-1"></i> Tambah Data Baru
         </button>
     </div>
 
@@ -37,7 +37,7 @@
             <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
                 <div class="d-flex align-items-center gap-2">
                     <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-3 py-2 fs-6">
-                        <i class="bi bi-people-fill me-1"></i> Total {{ count($gurus) }} Guru Terdaftar
+                        <i class="bi bi-people-fill me-1"></i> Total {{ count($gurus) }} Pegawai Terdaftar
                     </span>
                 </div>
 
@@ -60,7 +60,8 @@
                         <tr>
                             <th class="ps-4" style="width: 70px;">Foto</th>
                             <th>NIP</th>
-                            <th>Nama Guru & Gelar</th>
+                            <th>Nama & Gelar</th>
+                            <th>Kategori / Jabatan</th>
                             <th>Mata Pelajaran</th>
                             <th>No. Telepon / WA</th>
                             <th>Akun Login Email</th>
@@ -81,7 +82,17 @@
                                 </td>
                                 <td><span class="badge bg-light text-dark border font-monospace">{{ $g->nip ?? '-' }}</span></td>
                                 <td class="fw-bold text-dark">{{ $g->nama }}</td>
-                                <td><span class="badge bg-info text-dark fs-6">{{ $g->mata_pelajaran }}</span></td>
+                                <td>
+                                    @if($g->kategori == 'guru')
+                                        <span class="badge bg-success bg-opacity-10 text-success border border-success">Guru</span>
+                                    @else
+                                        <span class="badge bg-warning bg-opacity-10 text-warning border border-warning">Staff</span>
+                                    @endif
+                                    @if($g->posisi)
+                                        <div class="small mt-1 text-muted">{{ $g->posisi }}</div>
+                                    @endif
+                                </td>
+                                <td><span class="badge bg-info text-dark fs-6">{{ $g->mata_pelajaran ?? '-' }}</span></td>
                                 <td>
                                     @if($g->no_hp)
                                         <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $g->no_hp) }}" target="_blank" class="text-success fw-semibold text-decoration-none small">
@@ -108,7 +119,7 @@
                                         <form action="{{ route('guru.destroy', $g->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus data guru {{ $g->nama }} beserta akun loginnya?')">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="btn btn-danger btn-sm" title="Hapus Guru">
+                                            <button type="submit" class="btn btn-danger btn-sm" title="Hapus Data">
                                                 <i class="bi bi-trash-fill"></i> Hapus
                                             </button>
                                         </form>
@@ -135,7 +146,7 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow">
             <div class="modal-header bg-primary text-white py-3">
-                <h5 class="modal-header-title mb-0 fw-bold" id="tambahGuruModalLabel"><i class="bi bi-person-plus-fill me-2"></i>Tambah Data & Akun Guru</h5>
+                <h5 class="modal-header-title mb-0 fw-bold" id="tambahGuruModalLabel"><i class="bi bi-person-plus-fill me-2"></i>Tambah Data & Akun Baru</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form action="{{ route('guru.store') }}" method="POST" enctype="multipart/form-data">
@@ -149,13 +160,29 @@
 
                     <div class="row g-3 mb-3">
                         <div class="col-md-6">
+                            <label for="kategori" class="form-label fw-bold">Kategori Pegawai</label>
+                            <select name="kategori" id="kategori" class="form-select @error('kategori') is-invalid @enderror" required onchange="toggleMataPelajaran()">
+                                <option value="guru" {{ old('kategori') == 'guru' ? 'selected' : '' }}>Guru Pengajar</option>
+                                <option value="staff" {{ old('kategori') == 'staff' ? 'selected' : '' }}>Staff / Pegawai</option>
+                            </select>
+                            @error('kategori') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                        </div>
+                        <div class="col-md-6">
+                            <label for="posisi" class="form-label fw-bold">Posisi / Jabatan (Opsional)</label>
+                            <input type="text" name="posisi" id="posisi" class="form-control @error('posisi') is-invalid @enderror" placeholder="Contoh: Staff TU, Satpam, dll" value="{{ old('posisi') }}">
+                            @error('posisi') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
                             <label for="nip" class="form-label fw-bold">NIP (Opsional)</label>
                             <input type="text" name="nip" id="nip" class="form-control @error('nip') is-invalid @enderror" placeholder="19850101..." value="{{ old('nip') }}">
                             @error('nip') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
-                        <div class="col-md-6">
-                            <label for="mata_pelajaran" class="form-label fw-bold">Mata Pelajaran</label>
-                            <input type="text" name="mata_pelajaran" id="mata_pelajaran" class="form-control @error('mata_pelajaran') is-invalid @enderror" placeholder="Contoh: Desain Grafis / Matematika" value="{{ old('mata_pelajaran') }}" required>
+                        <div class="col-md-6" id="mata_pelajaran_container">
+                            <label for="mata_pelajaran" class="form-label fw-bold">Mata Pelajaran <span class="text-danger">*</span></label>
+                            <input type="text" name="mata_pelajaran" id="mata_pelajaran" class="form-control @error('mata_pelajaran') is-invalid @enderror" placeholder="Contoh: Desain Grafis / Matematika" value="{{ old('mata_pelajaran') }}">
                             @error('mata_pelajaran') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
                     </div>
@@ -189,7 +216,7 @@
                 </div>
                 <div class="modal-footer bg-light">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-primary fw-bold"><i class="bi bi-save me-1"></i> Simpan Data Guru</button>
+                    <button type="submit" class="btn btn-primary fw-bold"><i class="bi bi-save me-1"></i> Simpan Data</button>
                 </div>
             </form>
         </div>
@@ -204,4 +231,18 @@
         });
     </script>
 @endif
+<script>
+    function toggleMataPelajaran() {
+        var kategori = document.getElementById('kategori').value;
+        var mapelContainer = document.getElementById('mata_pelajaran_container');
+        if(kategori === 'staff') {
+            mapelContainer.style.display = 'none';
+        } else {
+            mapelContainer.style.display = 'block';
+        }
+    }
+    document.addEventListener('DOMContentLoaded', function() {
+        toggleMataPelajaran();
+    });
+</script>
 @endsection

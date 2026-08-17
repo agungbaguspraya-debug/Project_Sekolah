@@ -11,12 +11,18 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProfilSekolahController;
 use App\Http\Controllers\SiswaController;
 use App\Http\Controllers\TugasController;
+use App\Http\Controllers\LandingPageController;
 use Illuminate\Support\Facades\Route;
 
-// Redirect home page to dashboard
-Route::get('/', function () {
-    return redirect()->route('dashboard');
-})->middleware(['auth']);
+// Landing Page route
+Route::get('/', [LandingPageController::class, 'index'])->name('landing_page');
+Route::get('/sambutan-kepala-sekolah', [LandingPageController::class, 'sambutan'])->name('sambutan');
+Route::get('/sejarah', [LandingPageController::class, 'sejarah'])->name('sejarah');
+Route::get('/visi-misi', [LandingPageController::class, 'visiMisi'])->name('visi_misi');
+Route::get('/guru-staff', [LandingPageController::class, 'guruStaff'])->name('guru_staff');
+Route::get('/kurikulum', [LandingPageController::class, 'kurikulum'])->name('kurikulum');
+Route::get('/pengumuman', [LandingPageController::class, 'pengumuman'])->name('pengumuman');
+Route::get('/agenda', [LandingPageController::class, 'agenda'])->name('agenda');
 
 // Dashboard main route
 Route::get('/dashboard', [DashboardController::class, 'index'])->middleware(['auth'])->name('dashboard');
