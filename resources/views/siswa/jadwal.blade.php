@@ -42,14 +42,36 @@
                         @if(isset($jadwals[$day]) && count($jadwals[$day]) > 0)
                             <div class="d-flex flex-column gap-3">
                                 @foreach($jadwals[$day]->sortBy('jam_mulai') as $item)
-                                    <div class="p-3 border rounded-3 bg-white border-start border-4 border-primary shadow-sm">
+                                    @php
+                                        $teacherIzin = ($item->guru && isset($activeIzinGurus[$item->guru->id])) ? $activeIzinGurus[$item->guru->id] : null;
+                                    @endphp
+                                    <div class="p-3 border rounded-3 bg-white border-start border-4 {{ $teacherIzin ? 'border-warning' : 'border-primary' }} shadow-sm">
                                         <div class="d-flex justify-content-between align-items-center mb-1">
                                             <span class="badge bg-primary fs-6">{{ $item->mata_pelajaran }}</span>
+                                            @if($teacherIzin)
+                                                <span class="badge bg-warning text-dark small fw-bold"><i class="bi bi-person-exclamation me-1"></i>Guru {{ $teacherIzin->jenis }}</span>
+                                            @endif
                                         </div>
                                         @if($item->guru)
                                             <div class="small text-dark fw-bold mt-2">
                                                 <i class="bi bi-person-fill text-primary me-1"></i>{{ $item->guru->nama }}
                                             </div>
+                                            @if($teacherIzin)
+                                                @if($teacherIzin->guruPengganti)
+                                                    <div class="small text-success fw-bold mt-1.5 p-1.5 rounded bg-success bg-opacity-10 border border-success border-opacity-25">
+                                                        <i class="bi bi-person-check-fill me-1"></i>Guru Pengganti: {{ $teacherIzin->guruPengganti->nama }}
+                                                    </div>
+                                                @endif
+                                                @if($teacherIzin->tugas)
+                                                    <a href="{{ route('siswa.tugas') }}" class="btn btn-sm btn-primary w-100 mt-2 fw-bold text-truncate">
+                                                        <i class="bi bi-file-earmark-check me-1"></i>Kerjakan: {{ $teacherIzin->tugas->judul }}
+                                                    </a>
+                                                @elseif($teacherIzin->tugas_siswa)
+                                                    <div class="small text-dark mt-1 fst-italic">
+                                                        <i class="bi bi-journal-text text-primary me-1"></i>Tugas: "{{ Str::limit($teacherIzin->tugas_siswa, 40) }}"
+                                                    </div>
+                                                @endif
+                                            @endif
                                         @else
                                             <div class="small text-muted mt-2">
                                                 <i class="bi bi-person-dash me-1"></i>Guru belum diatur

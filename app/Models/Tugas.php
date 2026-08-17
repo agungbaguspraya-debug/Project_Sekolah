@@ -22,4 +22,9 @@ class Tugas extends Model
     {
         return $this->hasMany(TugasSubmission::class, 'tugas_id');
     }
+
+    public function izinGuru()
+    {
+        return $this->hasOne(IzinGuru::class, 'tugas_id');
+    }
 }

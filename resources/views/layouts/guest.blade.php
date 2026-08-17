@@ -133,5 +133,30 @@
         </div>
 
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+        <script>
+            document.addEventListener('click', function(e) {
+                const btn = e.target.closest('.toggle-password');
+                if (btn) {
+                    const targetId = btn.getAttribute('data-target');
+                    let input = targetId ? document.getElementById(targetId) : null;
+                    if (!input) {
+                        const container = btn.closest('.position-relative') || btn.parentElement;
+                        input = container ? container.querySelector('input') : null;
+                    }
+                    if (input) {
+                        const isPassword = input.type === 'password';
+                        input.type = isPassword ? 'text' : 'password';
+                        const icon = btn.querySelector('i');
+                        if (icon) {
+                            if (isPassword) {
+                                icon.className = 'bi bi-eye-fill fs-5 text-warning';
+                            } else {
+                                icon.className = 'bi bi-eye-slash-fill fs-5';
+                            }
+                        }
+                    }
+                }
+            });
+        </script>
     </body>
 </html>

@@ -39,8 +39,11 @@
             <div class="position-relative">
                 <i class="bi bi-lock-fill input-group-icon"></i>
                 <input id="password" type="password" name="password" 
-                       class="form-control form-control-custom @error('password') is-invalid @enderror" 
+                       class="form-control form-control-custom pe-5 @error('password') is-invalid @enderror" 
                        placeholder="••••••••" required autocomplete="current-password">
+                <button type="button" class="btn text-white-50 position-absolute end-0 top-50 translate-middle-y border-0 bg-transparent pe-3 toggle-password" data-target="password" title="Lihat / Sembunyikan Password">
+                    <i class="bi bi-eye-slash-fill fs-5"></i>
+                </button>
             </div>
             @error('password')
                 <div class="text-danger small mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ $message }}</div>

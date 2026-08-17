@@ -35,4 +35,24 @@ class Siswa extends Model
     {
         return $this->hasMany(SiswaMedia::class, 'siswa_id');
     }
+
+    public function absensi()
+    {
+        return $this->hasMany(Absensi::class, 'siswa_id');
+    }
+
+    public function alumniTracer()
+    {
+        return $this->hasMany(AlumniTracer::class, 'siswa_id');
+    }
+
+    public function prestasi()
+    {
+        return $this->hasMany(PrestasiSiswa::class, 'siswa_id');
+    }
+
+    public function pendaftaranEkskul()
+    {
+        return $this->hasMany(PendaftaranEkskul::class, 'siswa_id');
+    }
 }

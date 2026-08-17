@@ -222,6 +222,11 @@
                             <i class="bi bi-speedometer2"></i> Dashboard
                         </a>
                     </li>
+                    <li class="{{ request()->routeIs('profile.edit') ? 'active' : '' }}">
+                        <a href="{{ route('profile.edit') }}">
+                            <i class="bi bi-person-gear"></i> Profil Saya
+                        </a>
+                    </li>
                     @if(Auth::user()->isAdmin())
                         <!-- Group 1: Master Data -->
                         <li>
@@ -232,23 +237,33 @@
                             <div class="collapse {{ request()->routeIs('siswa.*') || request()->routeIs('guru.*') || request()->routeIs('kelas.*') || request()->routeIs('jurusan.*') ? 'show' : '' }} ps-3 mt-1" id="adminMasterSubmenu">
                                 <ul class="list-unstyled mb-0">
                                     <li class="{{ request()->routeIs('siswa.*') ? 'active' : '' }} my-1">
-                                        <a href="{{ route('siswa.index') }}" class="py-2">
-                                            <i class="bi bi-people-fill me-2"></i> Data Siswa
+                                        <a href="{{ route('siswa.index') }}" class="py-2 d-flex align-items-center justify-content-between">
+                                            <span><i class="bi bi-people-fill me-2"></i> Data Siswa</span>
+                                            <span class="badge bg-secondary rounded-pill small">{{ \App\Models\Siswa::count() }}</span>
                                         </a>
                                     </li>
                                     <li class="{{ request()->routeIs('guru.*') ? 'active' : '' }} my-1">
-                                        <a href="{{ route('guru.index') }}" class="py-2">
-                                            <i class="bi bi-person-workspace me-2"></i> Data Guru
+                                        <a href="{{ route('guru.index') }}" class="py-2 d-flex align-items-center justify-content-between">
+                                            <span><i class="bi bi-person-workspace me-2"></i> Data Guru</span>
+                                            <span class="badge bg-secondary rounded-pill small">{{ \App\Models\Guru::count() }}</span>
                                         </a>
                                     </li>
                                     <li class="{{ request()->routeIs('kelas.*') ? 'active' : '' }} my-1">
-                                        <a href="{{ route('kelas.index') }}" class="py-2">
-                                            <i class="bi bi-building-fill me-2"></i> Data Kelas
+                                        <a href="{{ route('kelas.index') }}" class="py-2 d-flex align-items-center justify-content-between">
+                                            <span><i class="bi bi-building-fill me-2"></i> Data Kelas</span>
+                                            <span class="badge bg-secondary rounded-pill small">{{ \App\Models\Kelas::count() }}</span>
                                         </a>
                                     </li>
                                     <li class="{{ request()->routeIs('jurusan.*') ? 'active' : '' }} my-1">
-                                        <a href="{{ route('jurusan.index') }}" class="py-2">
-                                            <i class="bi bi-journal-text me-2"></i> Data Jurusan
+                                        <a href="{{ route('jurusan.index') }}" class="py-2 d-flex align-items-center justify-content-between">
+                                            <span><i class="bi bi-journal-text me-2"></i> Data Jurusan</span>
+                                            <span class="badge bg-secondary rounded-pill small">{{ \App\Models\Jurusan::count() }}</span>
+                                        </a>
+                                    </li>
+                                    <li class="{{ request()->routeIs('admin.alumni.*') ? 'active' : '' }} my-1">
+                                        <a href="{{ route('admin.alumni.index') }}" class="py-2 d-flex align-items-center justify-content-between">
+                                            <span><i class="bi bi-mortarboard-fill me-2 text-warning"></i> Tracer Alumni</span>
+                                            <span class="badge bg-warning text-dark rounded-pill small">{{ \App\Models\AlumniTracer::count() }}</span>
                                         </a>
                                     </li>
                                 </ul>
@@ -257,20 +272,48 @@
 
                         <!-- Group 2: Jadwal & Piket -->
                         <li>
-                            <a href="#adminJadwalSubmenu" data-bs-toggle="collapse" class="d-flex align-items-center justify-content-between {{ request()->routeIs('piket.*') || request()->routeIs('jadwal.*') ? 'text-white fw-bold' : '' }}">
-                                <span><i class="bi bi-calendar-range-fill me-2 text-warning"></i> Jadwal & Piket Guru</span>
-                                <i class="bi bi-chevron-down ms-2"></i>
+                            <a href="#adminJadwalSubmenu" data-bs-toggle="collapse" class="d-flex align-items-center justify-content-between {{ request()->routeIs('piket.*') || request()->routeIs('jadwal.*') || request()->routeIs('absensi.*') || request()->routeIs('admin.izin.*') ? 'text-white fw-bold' : '' }}">
+                                <span><i class="bi bi-calendar-range-fill me-2 text-warning"></i> Jadwal, Piket & Absensi</span>
+                                <div class="d-flex align-items-center gap-1">
+                                    @php
+                                        $adminPendingIzinNav = \App\Models\IzinGuru::where('status', 'Pending')->count();
+                                    @endphp
+                                    @if($adminPendingIzinNav > 0)
+                                        <span class="badge bg-danger rounded-pill px-2 py-0.5 shadow-sm">{{ $adminPendingIzinNav }}</span>
+                                    @endif
+                                    <i class="bi bi-chevron-down ms-1"></i>
+                                </div>
                             </a>
-                            <div class="collapse {{ request()->routeIs('piket.*') || request()->routeIs('jadwal.*') ? 'show' : '' }} ps-3 mt-1" id="adminJadwalSubmenu">
+                            <div class="collapse {{ request()->routeIs('piket.*') || request()->routeIs('jadwal.*') || request()->routeIs('absensi.*') || request()->routeIs('admin.izin.*') ? 'show' : '' }} ps-3 mt-1" id="adminJadwalSubmenu">
                                 <ul class="list-unstyled mb-0">
+                                    <li class="{{ request()->routeIs('admin.izin.*') ? 'active' : '' }} my-1">
+                                        <a href="{{ route('admin.izin.index') }}" class="py-2 d-flex align-items-center justify-content-between">
+                                            <span><i class="bi bi-shield-lock-fill me-2 text-warning"></i> ACC Izin & Guru Pengganti</span>
+                                            @if($adminPendingIzinNav > 0)
+                                                <span class="badge bg-danger rounded-pill px-2 py-0.5 shadow-sm" title="{{ $adminPendingIzinNav }} Menunggu ACC Admin">{{ $adminPendingIzinNav }}</span>
+                                            @endif
+                                        </a>
+                                    </li>
+                                    <li class="{{ request()->routeIs('absensi.harian') ? 'active' : '' }} my-1">
+                                        <a href="{{ route('absensi.harian') }}" class="py-2 d-flex align-items-center justify-content-between">
+                                            <span><i class="bi bi-shield-check me-2 text-primary"></i> Presensi Harian Siswa</span>
+                                            <span class="badge bg-primary rounded-pill px-2 py-0.5 shadow-sm">{{ \App\Models\Absensi::where('tanggal', date('Y-m-d'))->count() }}</span>
+                                        </a>
+                                    </li>
+                                    <li class="{{ request()->routeIs('absensi.index') || request()->routeIs('absensi.rekap') ? 'active' : '' }} my-1">
+                                        <a href="{{ route('absensi.index') }}" class="py-2 d-flex align-items-center justify-content-between">
+                                            <span><i class="bi bi-clipboard-check-fill me-2 text-success"></i> Absensi Per Kelas</span>
+                                        </a>
+                                    </li>
                                     <li class="{{ request()->routeIs('piket.*') ? 'active' : '' }} my-1">
-                                        <a href="{{ route('piket.index') }}" class="py-2">
-                                            <i class="bi bi-calendar-check-fill me-2"></i> Tugas Piket Guru
+                                        <a href="{{ route('piket.index') }}" class="py-2 d-flex align-items-center justify-content-between">
+                                            <span><i class="bi bi-calendar-check-fill me-2"></i> Tugas Piket Guru</span>
+                                            <span class="badge bg-secondary rounded-pill small">{{ \App\Models\PiketGuru::count() }}</span>
                                         </a>
                                     </li>
                                     <li class="{{ request()->routeIs('jadwal.*') ? 'active' : '' }} my-1">
-                                        <a href="{{ route('jadwal.index') }}" class="py-2">
-                                            <i class="bi bi-calendar3 me-2"></i> Jadwal Pelajaran
+                                        <a href="{{ route('jadwal.index') }}" class="py-2 d-flex align-items-center justify-content-between">
+                                            <span><i class="bi bi-calendar3 me-2"></i> Jadwal Pelajaran</span>
                                         </a>
                                     </li>
                                 </ul>
@@ -279,15 +322,28 @@
 
                         <!-- Group 3: Tugas & Profil Sekolah -->
                         <li>
-                            <a href="#adminAkademikSubmenu" data-bs-toggle="collapse" class="d-flex align-items-center justify-content-between {{ request()->routeIs('tugas.*') || request()->routeIs('profil-sekolah.*') ? 'text-white fw-bold' : '' }}">
-                                <span><i class="bi bi-gear-wide-connected me-2 text-info"></i> Tugas & Profil Sekolah</span>
+                            <a href="#adminAkademikSubmenu" data-bs-toggle="collapse" class="d-flex align-items-center justify-content-between {{ request()->routeIs('tugas.*') || request()->routeIs('profil-sekolah.*') || request()->routeIs('admin.prestasi.*') || request()->routeIs('admin.ekskul.*') ? 'text-white fw-bold' : '' }}">
+                                <span><i class="bi bi-gear-wide-connected me-2 text-info"></i> Prestasi, Ekskul & Tugas</span>
                                 <i class="bi bi-chevron-down ms-2"></i>
                             </a>
-                            <div class="collapse {{ request()->routeIs('tugas.*') || request()->routeIs('profil-sekolah.*') ? 'show' : '' }} ps-3 mt-1" id="adminAkademikSubmenu">
+                            <div class="collapse {{ request()->routeIs('tugas.*') || request()->routeIs('profil-sekolah.*') || request()->routeIs('admin.prestasi.*') || request()->routeIs('admin.ekskul.*') ? 'show' : '' }} ps-3 mt-1" id="adminAkademikSubmenu">
                                 <ul class="list-unstyled mb-0">
+                                    <li class="{{ request()->routeIs('admin.prestasi.*') ? 'active' : '' }} my-1">
+                                        <a href="{{ route('admin.prestasi.index') }}" class="py-2 d-flex align-items-center justify-content-between">
+                                            <span><i class="bi bi-trophy-fill me-2 text-warning"></i> Prestasi Siswa</span>
+                                            <span class="badge bg-warning text-dark rounded-pill small">{{ \App\Models\PrestasiSiswa::count() }}</span>
+                                        </a>
+                                    </li>
+                                    <li class="{{ request()->routeIs('admin.ekskul.*') ? 'active' : '' }} my-1">
+                                        <a href="{{ route('admin.ekskul.index') }}" class="py-2 d-flex align-items-center justify-content-between">
+                                            <span><i class="bi bi-palette-fill me-2 text-primary"></i> Ekstrakurikuler</span>
+                                            <span class="badge bg-primary rounded-pill small">{{ \App\Models\Ekstrakurikuler::count() }}</span>
+                                        </a>
+                                    </li>
                                     <li class="{{ request()->routeIs('tugas.*') ? 'active' : '' }} my-1">
-                                        <a href="{{ route('tugas.index') }}" class="py-2">
-                                            <i class="bi bi-file-earmark-text-fill me-2"></i> Tugas Sekolah
+                                        <a href="{{ route('tugas.index') }}" class="py-2 d-flex align-items-center justify-content-between">
+                                            <span><i class="bi bi-file-earmark-text-fill me-2"></i> Tugas Sekolah</span>
+                                            <span class="badge bg-info text-dark rounded-pill px-2 py-0.5 small">{{ \App\Models\Tugas::count() }}</span>
                                         </a>
                                     </li>
                                     <li class="{{ request()->routeIs('profil-sekolah.*') ? 'active' : '' }} my-1">
@@ -299,59 +355,148 @@
                             </div>
                         </li>
                     @elseif(Auth::user()->isGuru())
-                        <li class="{{ request()->routeIs('tugas.*') ? 'active' : '' }}">
-                            <a href="{{ route('tugas.index') }}">
-                                <i class="bi bi-file-earmark-plus-fill"></i> Buat & Kelola Tugas
+                        @php
+                            $guruPendingIzinNav = 0;
+                            $guruSubstituteNav = 0;
+                            $guruClassesCountNav = 0;
+                            $pendingGradesNav = 0;
+                            $guruPiketCountNav = 0;
+
+                            if (Auth::user()->guru) {
+                                $guruId = Auth::user()->guru->id;
+                                $guruPendingIzinNav = \App\Models\IzinGuru::where('guru_id', $guruId)->where('status', 'Pending')->count();
+                                $guruSubstituteNav = \App\Models\IzinGuru::where('guru_pengganti_id', $guruId)->where('status', 'Disetujui')->where('tanggal_mulai', '<=', date('Y-m-d'))->where('tanggal_selesai', '>=', date('Y-m-d'))->count();
+                                $guruClassesCountNav = \App\Models\JadwalPelajaran::where('guru_id', $guruId)->pluck('kelas')->unique()->count();
+                                $myTugasIdsNav = \App\Models\Tugas::where('guru_id', $guruId)->pluck('id');
+                                $pendingGradesNav = \App\Models\TugasSubmission::whereIn('tugas_id', $myTugasIdsNav)->whereNull('nilai')->count();
+                                $guruPiketCountNav = \App\Models\PiketGuru::where('guru_id', $guruId)->count();
+                            }
+                            $totalGuruIzinNotif = $guruPendingIzinNav + $guruSubstituteNav;
+                            $totalActiveSiswaNav = \App\Models\Siswa::where('status', '!=', 'Lulus')->count();
+                            $todayAbNav = \App\Models\Absensi::where('tanggal', date('Y-m-d'))->count();
+                            $guruTodayBelumNav = max(0, $totalActiveSiswaNav - $todayAbNav);
+                        @endphp
+
+                        <!-- 1. Pengajuan Izin / Sakit Saya -->
+                        <li class="{{ request()->routeIs('guru.izin.*') ? 'active' : '' }}">
+                            <a href="{{ route('guru.izin.index') }}" class="d-flex align-items-center justify-content-between">
+                                <span><i class="bi bi-calendar-event-fill text-warning me-2"></i> Pengajuan Izin / Sakit Saya</span>
+                                @if($totalGuruIzinNotif > 0)
+                                    <span class="badge bg-warning text-dark rounded-pill px-2 py-1 shadow-sm" title="{{ $totalGuruIzinNotif }} Notifikasi Izin / Tugas Pengganti">{{ $totalGuruIzinNotif }}</span>
+                                @endif
                             </a>
                         </li>
+
+                        <!-- 2. Presensi Harian Siswa -->
+                        <li class="{{ request()->routeIs('absensi.harian') ? 'active' : '' }}">
+                            <a href="{{ route('absensi.harian') }}" class="d-flex align-items-center justify-content-between">
+                                <span><i class="bi bi-shield-check text-primary me-2"></i> Presensi Harian Siswa</span>
+                                @if($guruTodayBelumNav > 0)
+                                    <span class="badge bg-info text-dark rounded-pill px-2 py-1 shadow-sm" title="{{ $guruTodayBelumNav }} Siswa Belum Diabsen Hari Ini">{{ $guruTodayBelumNav }}</span>
+                                @endif
+                            </a>
+                        </li>
+
+                        <!-- 3. Input Absensi Kelas -->
+                        <li class="{{ request()->routeIs('absensi.index') || request()->routeIs('absensi.rekap') ? 'active' : '' }}">
+                            <a href="{{ route('absensi.index') }}" class="d-flex align-items-center justify-content-between">
+                                <span><i class="bi bi-clipboard-check-fill text-success me-2"></i> Input Absensi Kelas</span>
+                                @if($guruClassesCountNav > 0)
+                                    <span class="badge bg-success rounded-pill px-2 py-1 shadow-sm" title="{{ $guruClassesCountNav }} Kelas Mengajar">{{ $guruClassesCountNav }}</span>
+                                @endif
+                            </a>
+                        </li>
+
+                        <!-- 4. Buat & Kelola Tugas -->
+                        <li class="{{ request()->routeIs('tugas.*') ? 'active' : '' }}">
+                            <a href="{{ route('tugas.index') }}" class="d-flex align-items-center justify-content-between">
+                                <span><i class="bi bi-file-earmark-plus-fill me-2 text-info"></i> Buat & Kelola Tugas</span>
+                                @if($pendingGradesNav > 0)
+                                    <span class="badge bg-danger rounded-pill px-2 py-1 shadow-sm" title="{{ $pendingGradesNav }} Tugas Siswa Belum Dinilai">{{ $pendingGradesNav }}</span>
+                                @endif
+                            </a>
+                        </li>
+
+                        <!-- 5. Jadwal & Piket Guru -->
                         <li>
                             <a href="#guruJadwalSubmenu" data-bs-toggle="collapse" class="d-flex align-items-center justify-content-between {{ request()->routeIs('piket.*') || request()->routeIs('jadwal.*') ? 'text-white font-bold' : '' }}">
-                                <span><i class="bi bi-calendar-range-fill me-2"></i> Jadwal & Piket Guru</span>
-                                <i class="bi bi-chevron-down"></i>
+                                <span><i class="bi bi-calendar-range-fill me-2 text-warning"></i> Jadwal & Piket Guru</span>
+                                <div class="d-flex align-items-center gap-1">
+                                    @if($guruPiketCountNav > 0)
+                                        <span class="badge bg-warning text-dark rounded-pill px-2 py-0.5 shadow-sm">{{ $guruPiketCountNav }}</span>
+                                    @endif
+                                    <i class="bi bi-chevron-down"></i>
+                                </div>
                             </a>
                             <div class="collapse {{ request()->routeIs('piket.*') || request()->routeIs('jadwal.*') ? 'show' : '' }} ps-3 mt-1" id="guruJadwalSubmenu">
                                 <ul class="list-unstyled mb-0">
                                     <li class="{{ request()->routeIs('piket.*') ? 'active' : '' }} my-1">
-                                        <a href="{{ route('piket.index') }}" class="py-2">
-                                            <i class="bi bi-calendar-check-fill me-2"></i> Jadwal Piket
+                                        <a href="{{ route('piket.index') }}" class="py-2 d-flex align-items-center justify-content-between">
+                                            <span><i class="bi bi-calendar-check-fill me-2"></i> Jadwal Piket</span>
+                                            @if($guruPiketCountNav > 0)
+                                                <span class="badge bg-warning text-dark rounded-pill small">{{ $guruPiketCountNav }}</span>
+                                            @endif
                                         </a>
                                     </li>
                                     <li class="{{ request()->routeIs('jadwal.*') ? 'active' : '' }} my-1">
-                                        <a href="{{ route('jadwal.index') }}" class="py-2">
-                                            <i class="bi bi-calendar3 me-2"></i> Jadwal Mengajar Guru
+                                        <a href="{{ route('jadwal.index') }}" class="py-2 d-flex align-items-center justify-content-between">
+                                            <span><i class="bi bi-calendar3 me-2"></i> Jadwal Mengajar Guru</span>
                                         </a>
                                     </li>
                                 </ul>
                             </div>
                         </li>
                     @else
+                        @php
+                            $siswaPointsNav = 0;
+                            $siswaTodayTeacherLeaveNav = 0;
+                            $pendingCountNav = 0;
+
+                            if (Auth::user()->siswa) {
+                                $siswaKelas = Auth::user()->siswa->kelas;
+                                $siswaId = Auth::user()->siswa->id;
+
+                                $siswaPointsNav = Auth::user()->siswa->pelanggaran()->sum('point');
+                                $siswaTodayTeacherLeaveNav = \App\Models\IzinGuru::where('status', 'Disetujui')
+                                    ->where('tanggal_mulai', '<=', date('Y-m-d'))
+                                    ->where('tanggal_selesai', '>=', date('Y-m-d'))
+                                    ->count();
+
+                                $allTugasIds = \App\Models\Tugas::where('kelas', $siswaKelas)->pluck('id');
+                                $submittedTugasIds = \App\Models\TugasSubmission::where('siswa_id', $siswaId)->pluck('tugas_id');
+                                $pendingCountNav = $allTugasIds->diff($submittedTugasIds)->count();
+                            }
+                        @endphp
+
                         <li class="{{ request()->routeIs('siswa.profile') ? 'active' : '' }}">
-                            <a href="{{ route('siswa.profile') }}">
-                                <i class="bi bi-person-badge-fill"></i> Profil Saya
+                            <a href="{{ route('siswa.profile') }}" class="d-flex align-items-center justify-content-between">
+                                <span><i class="bi bi-person-badge-fill me-2"></i> Profil Saya</span>
+                                @if($siswaPointsNav > 0)
+                                    <span class="badge bg-danger rounded-pill px-2 py-1 shadow-sm" title="{{ $siswaPointsNav }} Poin Pelanggaran">{{ $siswaPointsNav }} Pts</span>
+                                @endif
                             </a>
                         </li>
                         @if(Auth::user()->siswa?->status !== 'Lulus')
                             <li class="{{ request()->routeIs('siswa.jadwal') ? 'active' : '' }}">
-                                <a href="{{ route('siswa.jadwal') }}">
-                                    <i class="bi bi-calendar3"></i> Jadwal Pelajaran
+                                <a href="{{ route('siswa.jadwal') }}" class="d-flex align-items-center justify-content-between">
+                                    <span><i class="bi bi-calendar3 me-2 text-warning"></i> Jadwal Pelajaran</span>
+                                    @if($siswaTodayTeacherLeaveNav > 0)
+                                        <span class="badge bg-warning text-dark rounded-pill px-2 py-1 shadow-sm" title="{{ $siswaTodayTeacherLeaveNav }} Guru Izin / Guru Pengganti Hari Ini">{{ $siswaTodayTeacherLeaveNav }}</span>
+                                    @endif
                                 </a>
                             </li>
                             <li class="{{ request()->routeIs('siswa.tugas') ? 'active' : '' }}">
-                                @php
-                                    $pendingCountNav = 0;
-                                    if(Auth::user()->siswa) {
-                                        $siswaKelas = Auth::user()->siswa->kelas;
-                                        $siswaId = Auth::user()->siswa->id;
-                                        $allTugasIds = \App\Models\Tugas::where('kelas', $siswaKelas)->pluck('id');
-                                        $submittedTugasIds = \App\Models\TugasSubmission::where('siswa_id', $siswaId)->pluck('tugas_id');
-                                        $pendingCountNav = $allTugasIds->diff($submittedTugasIds)->count();
-                                    }
-                                @endphp
                                 <a href="{{ route('siswa.tugas') }}" class="d-flex align-items-center justify-content-between">
-                                    <span><i class="bi bi-file-earmark-text-fill me-2"></i>Tugas Sekolah</span>
+                                    <span><i class="bi bi-file-earmark-text-fill me-2 text-info"></i> Tugas Sekolah</span>
                                     @if($pendingCountNav > 0)
-                                        <span class="badge bg-danger rounded-pill shadow-sm" title="{{ $pendingCountNav }} Tugas Belum Dikumpulkan">{{ $pendingCountNav }}</span>
+                                        <span class="badge bg-danger rounded-pill shadow-sm px-2 py-1" title="{{ $pendingCountNav }} Tugas Belum Dikumpulkan">{{ $pendingCountNav }}</span>
                                     @endif
+                                </a>
+                            </li>
+                            <li class="{{ request()->routeIs('siswa.ekskul') ? 'active' : '' }}">
+                                <a href="{{ route('siswa.ekskul') }}" class="d-flex align-items-center justify-content-between">
+                                    <span><i class="bi bi-palette-fill me-2 text-primary"></i> Ekstrakurikuler</span>
+                                    <span class="badge bg-primary rounded-pill px-2 py-0.5 shadow-sm">Ekskul</span>
                                 </a>
                             </li>
                         @endif
@@ -383,9 +528,19 @@
                 
                 <div class="d-flex align-items-center gap-2">
                     @auth
-                        <span class="text-dark fw-semibold small d-none d-sm-inline">
-                            <i class="bi bi-person-circle text-primary me-1 fs-5"></i> {{ Auth::user()->name }}
-                        </span>
+                        <a href="{{ route('profile.edit') }}" class="text-decoration-none d-flex align-items-center me-2 text-dark" title="Edit Profil Saya">
+                            @if(Auth::user()->foto)
+                                <img src="{{ asset('storage/'.Auth::user()->foto) }}" width="34" height="34" class="rounded-circle object-fit-cover me-2 border shadow-sm">
+                            @elseif(Auth::user()->isGuru() && Auth::user()->guru && Auth::user()->guru->foto)
+                                <img src="{{ asset('storage/'.Auth::user()->guru->foto) }}" width="34" height="34" class="rounded-circle object-fit-cover me-2 border shadow-sm">
+                            @elseif(Auth::user()->isSiswa() && Auth::user()->siswa && Auth::user()->siswa->foto)
+                                <img src="{{ asset('storage/'.Auth::user()->siswa->foto) }}" width="34" height="34" class="rounded-circle object-fit-cover me-2 border shadow-sm">
+                            @else
+                                <i class="bi bi-person-circle text-primary me-1 fs-4"></i>
+                            @endif
+                            <span class="fw-semibold small d-none d-sm-inline me-1">{{ Auth::user()->name }}</span>
+                            <i class="bi bi-pencil-square text-muted small ms-1" style="font-size: 0.8rem;"></i>
+                        </a>
                         <form method="POST" action="{{ route('logout') }}" id="logout-form" class="d-none">
                             @csrf
                         </form>
@@ -450,6 +605,108 @@
                     }
                 });
             });
+        });
+
+        // Global Automatic Jurusan Sync JavaScript
+        document.addEventListener('DOMContentLoaded', function() {
+            function autoSyncJurusan(kelasSelect) {
+                if (!kelasSelect) return;
+                const form = kelasSelect.closest('form') || document;
+                const jurusanSelect = form.querySelector('select[name="jurusan"]') || form.querySelector('#jurusan');
+                if (!jurusanSelect) return;
+
+                const rawKelas = kelasSelect.value ? kelasSelect.value.trim().toUpperCase() : '';
+                if (!rawKelas) return;
+
+                const tokens = rawKelas.split(/\s+/);
+                let matchedOption = null;
+
+                const majorMap = {
+                    'DKV': ['DKV', 'DESAIN KOMUNIKASI VISUAL'],
+                    'RPL': ['RPL', 'REKAYASA PERANGKAT LUNAK'],
+                    'TKJ': ['TKJ', 'TEKNIK KOMPUTER'],
+                    'MM': ['MM', 'MULTIMEDIA'],
+                    'AKL': ['AKL', 'AKUNTANSI'],
+                    'AK': ['AK', 'AKUNTANSI'],
+                    'TKR': ['TKR', 'TEKNIK KENDARAAN RINGAN'],
+                    'TSM': ['TSM', 'TEKNIK SEPEDA MOTOR'],
+                    'OTKP': ['OTKP', 'OTOMATISASI', 'PERKANTORAN'],
+                    'BDP': ['BDP', 'BISNIS DARING', 'PEMASARAN'],
+                    'TB': ['TB', 'TATA BOGA'],
+                    'TITL': ['TITL', 'TEKNIK INSTALASI'],
+                    'TP': ['TP', 'TEKNIK PEMESINAN']
+                };
+
+                const options = Array.from(jurusanSelect.options);
+
+                for (let opt of options) {
+                    if (!opt.value) continue;
+                    const optVal = opt.value.toUpperCase();
+                    const optText = opt.text.toUpperCase();
+
+                    for (let token of tokens) {
+                        if (token.length >= 2) {
+                            if (optVal.includes(token) || optText.includes(token) || token.includes(optVal)) {
+                                matchedOption = opt;
+                                break;
+                            }
+                            if (majorMap[token]) {
+                                for (let alias of majorMap[token]) {
+                                    if (optVal.includes(alias) || optText.includes(alias)) {
+                                        matchedOption = opt;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                        if (matchedOption) break;
+                    }
+                    if (matchedOption) break;
+                }
+
+                if (matchedOption) {
+                    jurusanSelect.value = matchedOption.value;
+                    jurusanSelect.classList.add('is-valid');
+                    setTimeout(() => jurusanSelect.classList.remove('is-valid'), 2000);
+
+                    const syncBadge = form.querySelector('#jurusanSyncBadge');
+                    if (syncBadge) {
+                        syncBadge.style.display = 'inline-block';
+                        syncBadge.textContent = '✨ Otomatis Terpilih: ' + matchedOption.value;
+                    }
+                }
+            }
+
+            document.addEventListener('change', function(e) {
+                if (e.target && (e.target.name === 'kelas' || e.target.id === 'kelas' || e.target.id === 'kelas_select')) {
+                    autoSyncJurusan(e.target);
+                }
+            });
+        });
+
+        // Global Toggle Password Show / Hide JavaScript
+        document.addEventListener('click', function(e) {
+            const btn = e.target.closest('.toggle-password');
+            if (btn) {
+                const targetId = btn.getAttribute('data-target');
+                let input = targetId ? document.getElementById(targetId) : null;
+                if (!input) {
+                    const container = btn.closest('.input-group') || btn.closest('.position-relative') || btn.parentElement;
+                    input = container ? container.querySelector('input') : null;
+                }
+                if (input) {
+                    const isPassword = input.type === 'password';
+                    input.type = isPassword ? 'text' : 'password';
+                    const icon = btn.querySelector('i');
+                    if (icon) {
+                        if (isPassword) {
+                            icon.className = 'bi bi-eye-slash-fill text-primary';
+                        } else {
+                            icon.className = 'bi bi-eye';
+                        }
+                    }
+                }
+            }
         });
     </script>
 </body>
